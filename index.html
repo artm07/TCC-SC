@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RGA — Registro Geral Animal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Faixa institucional -->
+  <div class="faixa-gov">
+    <span>Projeto acadêmico (TCC) — sistema fictício de identificação animal</span>
+  </div>
+
+  <header class="topo">
+    <div class="marca">
+      <svg class="brasao" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="30" fill="var(--dourado)"/>
+        <circle cx="32" cy="32" r="25" fill="var(--verde-agua)"/>
+        <g fill="#fff">
+          <ellipse cx="32" cy="40" rx="9" ry="7.5"/>
+          <ellipse cx="20" cy="29" rx="4" ry="5.2"/>
+          <ellipse cx="27" cy="21" rx="4" ry="5.2"/>
+          <ellipse cx="37" cy="21" rx="4" ry="5.2"/>
+          <ellipse cx="44" cy="29" rx="4" ry="5.2"/>
+        </g>
+      </svg>
+      <div>
+        <h1>RGA</h1>
+        <p>Registro Geral Animal</p>
+      </div>
+    </div>
+    <nav class="menu" aria-label="Navegação principal">
+      <button class="menu-item ativo" data-tela="inicio">Início</button>
+      <button class="menu-item" data-tela="cadastro">Cadastrar</button>
+      <button class="menu-item" data-tela="consulta">Consultar</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ============ INÍCIO ============ -->
+    <section id="inicio" class="tela ativa">
+      <div class="hero">
+        <div class="hero-texto">
+          <h2>A identidade oficial do seu melhor amigo 🐾</h2>
+          <p>Cadastre seu animal de estimação, gere o RG animal com número único,
+             acompanhe a carteira de vacinação e tenha todas as informações
+             em um só lugar.</p>
+          <div class="hero-botoes">
+            <button class="btn btn-rosa" data-ir="cadastro">Emitir RG animal</button>
+            <button class="btn btn-contorno" data-ir="consulta">Consultar cadastro</button>
+          </div>
+        </div>
+        <div class="hero-card" aria-hidden="true">
+          <div class="mini-rg">
+            <div class="mini-topo">REGISTRO GERAL ANIMAL</div>
+            <div class="mini-corpo">
+              <div class="mini-foto">🐶</div>
+              <div class="mini-linhas"><span></span><span></span><span></span><span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="estatisticas">
+        <div class="stat"><strong id="stat-total">0</strong><span>Animais registrados</span></div>
+        <div class="stat"><strong id="stat-caes">0</strong><span>Cães</span></div>
+        <div class="stat"><strong id="stat-gatos">0</strong><span>Gatos</span></div>
+        <div class="stat"><strong id="stat-vacinas">0</strong><span>Vacinas registradas</span></div>
+      </div>
+
+      <div class="servicos">
+        <article class="servico">
+          <div class="icone">🪪</div>
+          <h3>RG Animal</h3>
+          <p>Documento com foto, número de registro e dígito verificador.</p>
+        </article>
+        <article class="servico">
+          <div class="icone">💉</div>
+          <h3>Carteira de vacinação</h3>
+          <p>Registre vacinas, datas e próximas doses.</p>
+        </article>
+        <article class="servico">
+          <div class="icone">📍</div>
+          <h3>Microchip e tutor</h3>
+          <p>Dados do responsável para facilitar o reencontro em caso de perda.</p>
+        </article>
+        <article class="servico">
+          <div class="icone">🖨️</div>
+          <h3>Impressão</h3>
+          <p>Imprima o documento frente e verso para levar com você.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ CADASTRO ============ -->
+    <section id="cadastro" class="tela">
+      <h2 class="titulo-tela">Cadastro de animal</h2>
+      <form id="form-animal" class="formulario" novalidate>
+        <fieldset>
+          <legend>Dados do animal</legend>
+          <div class="grade">
+            <label class="campo foto-campo">
+              <span>Foto</span>
+              <div class="foto-preview" id="foto-preview">📷<small>Clique para enviar</small></div>
+              <input type="file" id="foto" accept="image/*" hidden>
+            </label>
+            <label class="campo"><span>Nome *</span><input name="nome" required maxlength="40"></label>
+            <label class="campo"><span>Espécie *</span>
+              <select name="especie" required>
+                <option value="">Selecione</option>
+                <option>Cão</option><option>Gato</option><option>Ave</option>
+                <option>Coelho</option><option>Roedor</option><option>Réptil</option><option>Outro</option>
+              </select>
+            </label>
+            <label class="campo"><span>Raça</span><input name="raca" maxlength="40" placeholder="SRD se não souber"></label>
+            <label class="campo"><span>Sexo *</span>
+              <select name="sexo" required>
+                <option value="">Selecione</option><option>Macho</option><option>Fêmea</option>
+              </select>
+            </label>
+            <label class="campo"><span>Data de nascimento *</span><input type="date" name="nascimento" required></label>
+            <label class="campo"><span>Pelagem / cor</span><input name="pelagem" maxlength="40"></label>
+            <label class="campo"><span>Porte</span>
+              <select name="porte"><option>Pequeno</option><option selected>Médio</option><option>Grande</option></select>
+            </label>
+            <label class="campo"><span>Peso (kg)</span><input type="number" name="peso" min="0" step="0.1"></label>
+            <label class="campo"><span>Nº do microchip</span><input name="microchip" maxlength="15" inputmode="numeric" placeholder="15 dígitos"></label>
+            <label class="campo checkbox"><input type="checkbox" name="castrado"><span>Castrado(a)</span></label>
+          </div>
+          <label class="campo"><span>Observações (alergias, condições de saúde, sinais particulares)</span>
+            <textarea name="observacoes" rows="3" maxlength="300"></textarea>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Dados do tutor</legend>
+          <div class="grade">
+            <label class="campo"><span>Nome completo *</span><input name="tutor" required maxlength="60"></label>
+            <label class="campo"><span>CPF *</span><input name="cpf" required maxlength="14" placeholder="000.000.000-00" inputmode="numeric"></label>
+            <label class="campo"><span>Telefone *</span><input name="telefone" required maxlength="15" placeholder="(00) 00000-0000" inputmode="tel"></label>
+            <label class="campo"><span>E-mail</span><input type="email" name="email" maxlength="60"></label>
+            <label class="campo"><span>Cidade / UF *</span><input name="cidade" required maxlength="40" placeholder="Florianópolis / SC"></label>
+            <label class="campo"><span>Endereço</span><input name="endereco" maxlength="80"></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Vacinas</legend>
+          <div id="lista-vacinas-form" class="vacinas-form"></div>
+          <button type="button" class="btn btn-contorno btn-pequeno" id="add-vacina">+ Adicionar vacina</button>
+        </fieldset>
+
+        <p class="erro" id="erro-form" role="alert"></p>
+        <div class="acoes">
+          <button type="reset" class="btn btn-contorno">Limpar</button>
+          <button type="submit" class="btn btn-rosa">Emitir RG animal</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ CONSULTA ============ -->
+    <section id="consulta" class="tela">
+      <h2 class="titulo-tela">Consultar animais</h2>
+      <div class="busca">
+        <input type="search" id="busca" placeholder="Buscar por nome, nº do RG, tutor ou CPF…">
+        <select id="filtro-especie">
+          <option value="">Todas as espécies</option>
+          <option>Cão</option><option>Gato</option><option>Ave</option>
+          <option>Coelho</option><option>Roedor</option><option>Réptil</option><option>Outro</option>
+        </select>
+      </div>
+      <div id="lista-animais" class="lista-animais"></div>
+    </section>
+  </main>
+
+  <!-- ============ MODAL DO DOCUMENTO ============ -->
+  <dialog id="modal">
+    <div class="modal-conteudo">
+      <button class="fechar" id="fechar-modal" aria-label="Fechar">×</button>
+      <div id="documento"></div>
+      <div class="acoes acoes-modal">
+        <button class="btn btn-contorno" id="btn-excluir">Excluir cadastro</button>
+        <button class="btn btn-verde" id="btn-imprimir">Imprimir</button>
+      </div>
+    </div>
+  </dialog>
+
+  <footer class="rodape">
+    RGA — Registro Geral Animal · Projeto de TCC · Dados salvos apenas neste navegador
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
