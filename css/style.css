@@ -398,3 +398,26 @@ dialog::backdrop { background: rgba(45, 42, 50, .6); }
   .rg { break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .tabela th, .tabela td, .rg-cabecalho, .rg-rodape { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* ---------- Logo RGA ---------- */
+.selo-logo {
+  display: inline-flex; align-items: center;
+  background: #fff;
+  border-radius: 12px;
+  padding: 6px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+  border: 2px solid var(--dourado);
+  margin: 0;
+}
+.selo-logo img { height: 34px; width: auto; display: block; }
+.selo-pequeno { padding: 4px 8px; border-radius: 10px; border-width: 1px; flex-shrink: 0; }
+.selo-pequeno img { height: 24px; }
+.selo-grande { padding: 16px 26px; border-radius: 22px; border-width: 3px; }
+.selo-grande img { height: 72px; }
+.marca p { font-size: 12px; line-height: 1.2; font-weight: 500; }
+.logo-hero { height: 64px; width: auto; display: block; margin-bottom: 14px; }
+.mini-topo { background: #fff; border-bottom: 4px solid var(--verde-agua); padding: 10px; }
+.mini-topo img { height: 30px; display: block; margin: 0 auto; }
+.logo-vazio { display: block; height: 48px; margin: 0 auto 12px; opacity: .55; }
+.rodape { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 560px) { .logo-hero { height: 48px; } }

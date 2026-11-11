@@ -283,7 +283,7 @@ function renderizarLista() {
 
   const lista = $("#lista-animais");
   if (!filtrados.length) {
-    lista.innerHTML = `<div class="vazio">${
+    lista.innerHTML = `<div class="vazio"><img class="logo-vazio" src="img/logo-rga.png" alt="">${
       animais.length ? "Nenhum animal encontrado com esses filtros." : "Nenhum animal cadastrado ainda. Que tal emitir o primeiro RG? 🐾"
     }</div>`;
     return;
@@ -308,12 +308,7 @@ $("#busca").addEventListener("input", renderizarLista);
 $("#filtro-especie").addEventListener("change", renderizarLista);
 
 /* ---------------- Documento (RG) ---------------- */
-const BRASAO_SVG = `
-  <svg class="brasao" viewBox="0 0 64 64" aria-hidden="true">
-    <circle cx="32" cy="32" r="30" fill="#d4a933"/><circle cx="32" cy="32" r="25" fill="#fff"/>
-    <g fill="#e8559a"><ellipse cx="32" cy="40" rx="9" ry="7.5"/><ellipse cx="20" cy="29" rx="4" ry="5.2"/>
-    <ellipse cx="27" cy="21" rx="4" ry="5.2"/><ellipse cx="37" cy="21" rx="4" ry="5.2"/><ellipse cx="44" cy="29" rx="4" ry="5.2"/></g>
-  </svg>`;
+const LOGO_DOC = `<span class="selo-logo selo-pequeno"><img src="img/logo-rga.png" alt="RGA"></span>`;
 
 /* Código de barras decorativo gerado a partir do número do RG */
 function codigoBarras(rg) {
@@ -346,7 +341,7 @@ function abrirDocumento(a) {
     <!-- FRENTE -->
     <div class="rg">
       <div class="rg-cabecalho">
-        ${BRASAO_SVG}
+        ${LOGO_DOC}
         <div style="flex:1">
           <strong>REGISTRO GERAL ANIMAL</strong>
           <small>Carteira de identidade animal</small>
@@ -375,7 +370,7 @@ function abrirDocumento(a) {
     <!-- VERSO -->
     <div class="rg">
       <div class="rg-cabecalho">
-        ${BRASAO_SVG}
+        ${LOGO_DOC}
         <div style="flex:1">
           <strong>DADOS COMPLEMENTARES</strong>
           <small>Tutor responsável e saúde</small>

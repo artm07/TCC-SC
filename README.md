@@ -23,6 +23,7 @@ Abra o arquivo `index.html` no navegador (duplo clique). Pronto.
 ```
 index.html      → páginas (Início, Cadastrar, Consultar) e modal do documento
 css/style.css   → visual e cores (variáveis no :root)
+img/logo-rga.png → logo do RGA
 js/app.js       → lógica: cadastro, validações, RG, busca, vacinas
 ```
 
