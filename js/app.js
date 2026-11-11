@@ -284,7 +284,7 @@ function renderizarLista() {
   const lista = $("#lista-animais");
   if (!filtrados.length) {
     lista.innerHTML = `<div class="vazio"><img class="logo-vazio" src="img/logo-rga.png" alt="">${
-      animais.length ? "Nenhum animal encontrado com esses filtros." : "Nenhum animal cadastrado ainda. Que tal emitir o primeiro RG? 🐾"
+      animais.length ? "Nenhum animal encontrado com esses filtros." : "Nenhum animal cadastrado ainda. Que tal emitir o primeiro RG?"
     }</div>`;
     return;
   }
@@ -398,7 +398,7 @@ function abrirDocumento(a) {
 
     <!-- CARTEIRA DE VACINAÇÃO -->
     <div class="carteira-vacina">
-      <h3>💉 Carteira de vacinação</h3>
+      <h3>Carteira de vacinação</h3>
       ${a.vacinas.length ? `
         <table class="tabela">
           <thead><tr><th>Vacina</th><th>Aplicação</th><th>Próxima dose</th><th>Situação</th></tr></thead>
