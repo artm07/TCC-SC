@@ -5,11 +5,25 @@ Feito com **HTML, CSS e JavaScript puro**, sem instalar nada.
 
 Paleta: **Rosa** (`#e8559a`), **Dourado** (`#d4a933`) e **Verde-água** (`#2bbfae`).
 
-## Telas (seguindo o mapa mental)
+## Dois tipos de conta
+
+| Conta | Quem é | O que faz |
+|---|---|---|
+| **Administrador** | Funcionário do posto de atendimento | **Emite, edita e exclui RGAs**, registra vacinas, vê todos os tutores, a agenda de consultas e as solicitações (adoção e dúvidas), cria outros administradores |
+| **Tutor** | Dono do animal | Cria a própria conta, **vê os RGAs dos seus animais**, marca consultas, pede adoção, lê notícias e envia dúvidas |
+
+**Administrador de teste:** login `admin@rga.sc` e senha `admin123`.
+Troque a senha depois de entrar, em **Tutores → Administradores → Alterar minha senha**.
+
+Como funciona a emissão: o administrador digita o **CPF do tutor**. Se o tutor já tem conta, os dados
+aparecem sozinhos; se ainda não tem, o administrador informa nome e telefone e, quando o tutor criar
+a conta com esse mesmo CPF, o RGA aparece para ele automaticamente.
+
+## Telas do tutor (seguindo o mapa mental)
 - **Login**: entrar com CPF ou e-mail e senha, criar conta e "Esqueci minha senha"
 - **Início**: menu lateral (≡), atalhos (RGA, Marque sua consulta, Notícias, Cuidados, Adoção),
   aviso da próxima consulta e **Dúvidas frequentes** com envio de dúvida
-- **RGA**: lista dos seus animais, emissão de novo RG e documento com foto e dados,
+- **RGA**: lista dos seus animais e documento com foto e dados,
   com as abas **Vacinação**, **Localização** e **Saúde**
 - **Marque sua consulta**: Exame (Sangue, Raio-X…), Consulta ou Cirurgia (Castração, Parto…),
   escolha do dia no **calendário**, do horário e confirmação; lista "Minhas consultas" com cancelamento

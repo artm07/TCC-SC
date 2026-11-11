@@ -25,10 +25,24 @@ const ICONES = {
   imprimir: '<path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
   lixo: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
   relogio: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  pessoas: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/>',
+  caixa: '<path d="M3 13h5l1.5 3h5l1.5-3h5"/><path d="M5.5 5h13L21 13v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6Z"/>',
+  editar: '<path d="M4 20h4L19 9l-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/>',
+  escudo: '<path d="M12 3 4 6v6c0 4.5 3.4 8.2 8 9 4.6-.8 8-4.5 8-9V6Z"/><path d="m9 12 2 2 4-4"/>',
 };
 const icone = (nome) => `<svg class="svg-ico" viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
 
-/* Atalhos da tela inicial e do menu lateral */
+/* Menu do administrador */
+const MENU_ADMIN = [
+  { rota: "painel",       titulo: "Painel",        icone: "inicio" },
+  { rota: "emitir",       titulo: "Emitir RGA",    icone: "mais" },
+  { rota: "rgas",         titulo: "RGAs emitidos", icone: "rga" },
+  { rota: "tutores",      titulo: "Tutores",       icone: "pessoas" },
+  { rota: "agenda",       titulo: "Agenda",        icone: "consulta" },
+  { rota: "solicitacoes", titulo: "Solicitações",  icone: "caixa" },
+];
+
+/* Atalhos da tela inicial e do menu lateral (tutor) */
 const ATALHOS = [
   { rota: "rga",       titulo: "RGA",                 descricao: "Documentos dos seus animais", icone: "rga",       cor: "verde" },
   { rota: "consultas", titulo: "Marque sua consulta", descricao: "Exames, consultas e cirurgias", icone: "consulta", cor: "rosa" },
@@ -51,8 +65,8 @@ const DUVIDAS = [
     r: "É o Registro Geral Animal: um documento de identificação do seu animal, com número único, foto, dados do tutor e carteira de vacinação.",
     chaves: ["rga", "o que é", "registro", "documento"] },
   { p: "Como emito o RG do meu animal?",
-    r: "No menu, toque em RGA e depois em “Novo RGA”. Preencha os dados do animal e toque em “Emitir RG”. O número é gerado na hora.",
-    chaves: ["emitir", "emito", "cadastrar animal", "novo rga", "fazer rg", "tirar rg"] },
+    r: "O RGA é emitido por um administrador, em um posto de atendimento. Leve seu animal e informe seu CPF. Depois de emitido, o documento aparece em “RGA” na sua conta (cadastrada com o mesmo CPF).",
+    chaves: ["emitir", "emito", "cadastrar animal", "novo rga", "fazer rg", "tirar rg", "posto"] },
   { p: "Como marco uma consulta?",
     r: "Vá em “Marque sua consulta”, escolha o animal, o tipo (Exame, Consulta ou Cirurgia), o dia no calendário e o horário. Depois é só confirmar.",
     chaves: ["consulta", "marcar", "agendar", "exame", "cirurgia", "castração", "horário"] },

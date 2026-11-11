@@ -455,6 +455,62 @@ main {
 .lista-simples small { color: var(--texto-suave); font-size: 12px; }
 
 /* ==========================================================
+   ÁREA DO ADMINISTRADOR
+   ========================================================== */
+.selo-admin {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--dourado-claro); color: var(--dourado-escuro);
+  font-size: 13px; font-weight: 600; padding: 5px 12px 5px 8px; border-radius: 999px;
+}
+.selo-admin .svg-ico { width: 18px; height: 18px; }
+.modo-admin .topo { border-image: linear-gradient(90deg, var(--dourado), var(--dourado-claro), var(--dourado)) 1; }
+
+.numeros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.numero {
+  display: flex; flex-direction: column; gap: 2px;
+  background: #fff; border: 1px solid var(--borda); border-top: 3px solid var(--cor-linha);
+  border-radius: var(--raio); padding: 14px 16px;
+}
+.numero strong { font-size: 28px; line-height: 1.1; color: var(--cor); }
+.numero span { font-size: 13px; color: var(--texto-suave); }
+
+.busca {
+  width: 100%; font: inherit; font-size: 16px; min-height: 46px; margin-bottom: 12px;
+  padding: 10px 14px; border: 1px solid var(--borda); border-radius: 999px; background: #fff;
+}
+.busca:focus { outline: none; border-color: var(--verde-agua); box-shadow: 0 0 0 3px var(--verde-agua-claro); }
+
+.lista-rgas { list-style: none; }
+.lista-rgas li + li { border-top: 1px solid var(--borda); }
+.lista-rgas a { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+.lista-rgas a:hover strong { color: var(--rosa-escuro); }
+.lista-rgas a > div:nth-child(2) { flex: 1; min-width: 0; }
+.lista-rgas .foto-animal { width: 52px; height: 52px; font-size: 26px; }
+.lista-rgas strong, .lista-rgas .num-rg, .lista-rgas small { display: block; }
+.lista-rgas small { color: var(--texto-suave); font-size: 13px; }
+.status.sem-conta { background: var(--dourado-claro); color: var(--dourado-escuro); }
+
+.tutor-encontrado {
+  display: flex; align-items: center; gap: 10px; margin-top: 12px;
+  background: var(--verde-agua-claro); color: var(--verde-agua-escuro);
+  border-radius: 12px; padding: 12px 14px;
+}
+.tutor-encontrado strong { display: block; color: var(--texto); }
+.tutor-encontrado small { font-size: 13px; }
+#tutor-novo { margin-top: 12px; }
+
+.linha-pessoa { flex-direction: row !important; align-items: center; gap: 12px; }
+.linha-pessoa > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.linha-pessoa p { font-size: 14px; color: var(--texto-suave); margin-top: 4px; }
+.forms-admin { margin-top: 16px; }
+.forms-admin .auth-form { gap: 10px; }
+.forms-admin .subtitulo { margin-top: 0; }
+
+@media (max-width: 760px) {
+  .numeros { grid-template-columns: 1fr 1fr; }
+}
+
+/* ==========================================================
    ASSISTENTE "POSSO AJUDAR?"
    ========================================================== */
 .ajuda-flutuante {
@@ -551,3 +607,6 @@ dialog::backdrop { background: rgba(45, 42, 50, .45); }
   main { padding: 0 !important; margin: 0 !important; max-width: none !important; }
   .documento { box-shadow: none; break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* Campos de data da vacina não podem passar da largura da tela */
+.linha-vacina input { min-width: 0; }
