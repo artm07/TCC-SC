@@ -5,6 +5,28 @@ Feito com **HTML, CSS e JavaScript puro**, sem instalar nada.
 
 Paleta: **Rosa** (`#e8559a`), **Dourado** (`#d4a933`) e **Verde-água** (`#2bbfae`).
 
+## Novidades desta versão
+
+- **QR Code no RGA**: aparece no documento e em tamanho grande para imprimir na coleira. Quem escanear
+  abre a página pública `encontrei.html`, com o nome do animal e botões para ligar ou mandar WhatsApp
+  para o tutor, sem precisar de conta. Os dados vão dentro do próprio link, sem servidor.
+- **Animais desaparecidos**: o tutor (ou o administrador) marca o animal como desaparecido, com data
+  e local; ele aparece numa lista própria e com aviso no documento, até ser marcado como encontrado.
+- **Lembretes de vacina**: aviso na tela inicial das vacinas atrasadas ou que vencem em até 30 dias.
+  No app Android, notificação no celular 7 dias antes e no dia da dose.
+- **Proteção de dados (LGPD)**: aceite dos Termos de uso ao criar conta, CPF sempre mascarado nas telas
+  (529.\*\*\*.\*\*\*-25) e a tela **Meus dados**, para corrigir telefone e cidade ou excluir a conta.
+- **Acessibilidade**: botões com contraste de pelo menos 4,5:1 (padrão WCAG AA) e contorno visível
+  ao navegar pelo teclado.
+- **Sobre o projeto**: na Ajuda, explicação de que o RGA é um protótipo e de que o cadastro oficial
+  e gratuito de cães e gatos do governo federal é o **SinPatinhas** (Lei 15.046/2024), feito com a conta gov.br.
+
+### Para o QR Code funcionar fora do seu computador
+O QR Code aponta para `https://artm07.github.io/TCC-SC/encontrei.html`. Para esse endereço existir,
+ative o **GitHub Pages** no repositório TCC-SC: **Settings → Pages → Deploy from a branch**, escolha a
+branch com o código e a pasta **/ (root)**. No plano gratuito, o repositório precisa ser público.
+Se publicar o site em outro endereço, troque `URL_PUBLICA` em `js/dados.js`.
+
 ## Dois tipos de conta
 
 | Conta | Quem é | O que faz |
@@ -59,6 +81,8 @@ css/style.css   → visual e cores (variáveis no :root)
 img/logo-rga.png → logo do RGA
 js/dados.js     → textos fixos (notícias, cuidados, adoção, dúvidas)
 js/app.js       → lógica de todas as telas
+js/vendor/qrcode.js → gerador de QR Code (biblioteca MIT)
+encontrei.html  → página pública aberta pelo QR Code
 ```
 
 Os dados ficam salvos no `localStorage` do navegador. Para uma versão com banco de dados real,

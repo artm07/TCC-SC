@@ -62,6 +62,8 @@
             <label class="campo"><span>Senha</span><input name="senha" type="password" autocomplete="new-password" placeholder="Mín. 6 caracteres"></label>
             <label class="campo"><span>Confirmar senha</span><input name="senha2" type="password" autocomplete="new-password"></label>
           </div>
+          <label class="campo checkbox aceite"><input type="checkbox" name="termos">
+            <span>Li e aceito os <button type="button" class="link" data-termos>Termos de uso e privacidade</button></span></label>
           <p class="erro" role="alert"></p>
           <button class="btn btn-rosa btn-bloco">Criar conta</button>
           <p class="auth-troca">Já tem conta? <button type="button" class="link" data-auth="login">Entrar</button></p>
@@ -128,6 +130,7 @@
     </div>
   </dialog>
 
+  <script src="js/vendor/qrcode.js"></script>
   <script src="js/dados.js"></script>
   <script src="js/app.js"></script>
 </body>

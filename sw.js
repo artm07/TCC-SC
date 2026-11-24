@@ -1,7 +1,7 @@
 /* Service worker: guarda os arquivos do app para funcionar sem internet */
-const CACHE = "rga-v5";
+const CACHE = "rga-v6";
 const ARQUIVOS = [
-  "./", "index.html", "css/style.css", "js/dados.js", "js/app.js", "manifest.webmanifest",
+  "./", "index.html", "css/style.css", "js/vendor/qrcode.js", "js/dados.js", "js/app.js", "encontrei.html", "manifest.webmanifest",
   "img/logo-rga.png", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png",
 ];
 

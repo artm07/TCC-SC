@@ -4,6 +4,11 @@
    Para mudar textos, basta editar este arquivo.
    ========================================================== */
 
+/* Endereço público do site, usado no QR Code do RGA.
+   Quem escanear o QR Code abre a página "encontrei.html" deste endereço.
+   Se publicar o site em outro lugar, troque aqui. */
+const URL_PUBLICA = "https://artm07.github.io/TCC-SC/";
+
 /* Ícones de linha (SVG) usados no app */
 const ICONES = {
   menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
@@ -28,6 +33,10 @@ const ICONES = {
   pessoas: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/>',
   caixa: '<path d="M3 13h5l1.5 3h5l1.5-3h5"/><path d="M5.5 5h13L21 13v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6Z"/>',
   editar: '<path d="M4 20h4L19 9l-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/>',
+  alerta: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>',
+  qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h3v-3"/>',
+  usuario: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  vacina: '<path d="m18 2 4 4M17 7l3-3M19 9 8.7 19.3a2.4 2.4 0 0 1-3.4 0l-.6-.6a2.4 2.4 0 0 1 0-3.4L15 5M9 11l4 4M5 19l-3 3M14 4l6 6"/>',
   escudo: '<path d="M12 3 4 6v6c0 4.5 3.4 8.2 8 9 4.6-.8 8-4.5 8-9V6Z"/><path d="m9 12 2 2 4-4"/>',
 };
 const icone = (nome) => `<svg class="svg-ico" viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
@@ -39,6 +48,7 @@ const MENU_ADMIN = [
   { rota: "rgas",         titulo: "RGAs emitidos", icone: "rga" },
   { rota: "tutores",      titulo: "Tutores",       icone: "pessoas" },
   { rota: "agenda",       titulo: "Agenda",        icone: "consulta" },
+  { rota: "desaparecidos", titulo: "Desaparecidos", icone: "alerta" },
   { rota: "solicitacoes", titulo: "Solicitações",  icone: "caixa" },
 ];
 
@@ -49,6 +59,7 @@ const ATALHOS = [
   { rota: "noticias",  titulo: "Notícias",            descricao: "Campanhas e avisos",            icone: "noticias", cor: "dourado" },
   { rota: "cuidados",  titulo: "Cuidados",            descricao: "Dicas para o dia a dia",        icone: "cuidados", cor: "verde" },
   { rota: "adocao",    titulo: "Adoção",              descricao: "Encontre um novo amigo",        icone: "adocao",   cor: "rosa" },
+  { rota: "desaparecidos", titulo: "Desaparecidos",   descricao: "Animais perdidos",              icone: "alerta",   cor: "dourado" },
 ];
 
 /* Tipos de atendimento (mapa: Exame / Consulta / Cirurgia) */
@@ -79,6 +90,15 @@ const DUVIDAS = [
   { p: "Como adoto um animal?",
     r: "Abra “Adoção”, escolha um animal e toque em “Quero adotar”. Seu interesse fica registrado para a equipe entrar em contato.",
     chaves: ["adotar", "adoção", "adocao"] },
+  { p: "Meu animal sumiu. O que eu faço?",
+    r: "Abra o RGA do animal, vá na aba Localização e toque em “Marcar como desaparecido”, informando onde ele foi visto. Ele passa a aparecer na lista de Desaparecidos. Quando ele voltar, toque em “Animal encontrado”.",
+    chaves: ["sumiu", "perdi", "perdido", "desaparecido", "fugiu", "sumido"] },
+  { p: "Para que serve o QR Code do RGA?",
+    r: "Imprima o QR Code e coloque na coleira. Quem encontrar o animal escaneia com a câmera do celular e vê o nome dele e o telefone do tutor, sem precisar de conta no app.",
+    chaves: ["qr", "qrcode", "coleira", "plaquinha", "escanear"] },
+  { p: "O RGA substitui o SinPatinhas?",
+    r: "Não. O RGA é um protótipo de TCC. O cadastro oficial e gratuito de cães e gatos do governo federal é o SinPatinhas, feito em sinpatinhas.mma.gov.br com a conta gov.br.",
+    chaves: ["sinpatinhas", "oficial", "governo", "gov.br", "substitui"] },
   { p: "Onde meus dados ficam salvos?",
     r: "Neste protótipo, tudo fica salvo apenas neste aparelho/navegador. Se limpar os dados do navegador, as informações são apagadas.",
     chaves: ["dados", "salvo", "salvos", "privacidade", "apagar"] },
@@ -136,3 +156,20 @@ const EMOJI_ESPECIE = {
   "Cão": "🐶", "Gato": "🐱", "Ave": "🐦", "Coelho": "🐰",
   "Roedor": "🐹", "Réptil": "🦎", "Outro": "🐾",
 };
+
+/* Termos de uso e privacidade (LGPD) — texto do protótipo */
+const TERMOS = `
+<h2>Termos de uso e privacidade</h2>
+<p class="texto-suave">Projeto acadêmico (TCC). Sistema fictício, sem valor de documento oficial.
+O cadastro oficial de cães e gatos do governo federal é o SinPatinhas (sinpatinhas.mma.gov.br).</p>
+<h3 class="subtitulo">Quais dados usamos</h3>
+<p>Nome, CPF, telefone, e-mail e cidade do tutor, e os dados e a foto do animal.</p>
+<h3 class="subtitulo">Para quê</h3>
+<p>Para emitir o RGA, ligar o animal ao tutor, marcar consultas e ajudar a devolver o animal em caso de perda.</p>
+<h3 class="subtitulo">O que fica público</h3>
+<p>Somente pelo QR Code do RGA ou pela lista de desaparecidos: nome e dados do animal, o primeiro nome do tutor,
+o telefone e a cidade. O CPF nunca é mostrado por inteiro.</p>
+<h3 class="subtitulo">Seus direitos (LGPD — Lei 13.709/2018)</h3>
+<p>Você pode ver e corrigir seus dados em “Meus dados” e excluir sua conta a qualquer momento.</p>
+<h3 class="subtitulo">Onde os dados ficam</h3>
+<p>Neste protótipo, apenas neste aparelho/navegador.</p>`;

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="robots" content="noindex">
+  <title>Encontrei um animal — RGA</title>
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="pagina-publica">
+  <!-- Página aberta ao escanear o QR Code do RGA.
+       Os dados vêm dentro do próprio link (depois do #) e não são enviados a nenhum servidor. -->
+  <main class="publica">
+    <img class="publica-logo" src="img/logo-rga.png" alt="RGA — Registro Geral Animal">
+    <div id="cartao"></div>
+    <p class="texto-suave publica-nota">Projeto acadêmico (TCC) — sistema fictício. O cadastro oficial de cães e
+      gatos é o SinPatinhas, do governo federal.</p>
+  </main>
+
+  <script>
+    const EMOJI = { "Cão": "🐶", "Gato": "🐱", "Ave": "🐦", "Coelho": "🐰", "Roedor": "🐹", "Réptil": "🦎", "Outro": "🐾" };
+    const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+    function decodificar(texto) {
+      const b64 = texto.replace(/-/g, "+").replace(/_/g, "/");
+      const bin = atob(b64 + "===".slice((b64.length + 3) % 4));
+      return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0))));
+    }
+
+    let d = null;
+    try { d = decodificar(location.hash.slice(1)); } catch { d = null; }
+    const cartao = document.getElementById("cartao");
+
+    if (!d || !d.n) {
+      cartao.innerHTML = `<section class="painel"><h1>Link inválido</h1>
+        <p class="texto-suave">Não foi possível ler os dados deste QR Code.</p></section>`;
+    } else {
+      const fone = String(d.f || "").replace(/\D/g, "");
+      const foneFmt = fone.length === 11 ? fone.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
+        : fone.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+      const msg = encodeURIComponent(`Olá! Encontrei o(a) ${d.n} (RG ${d.rg}) pelo QR Code do RGA.`);
+      document.title = `Encontrei ${d.n} — RGA`;
+      cartao.innerHTML = `
+        <section class="painel publica-cartao">
+          <p class="publica-aviso">Você encontrou um animal com RGA</p>
+          <div class="publica-animal">
+            <div class="foto-animal">${EMOJI[d.e] || "🐾"}</div>
+            <div><h1>${esc(d.n)}</h1>
+              <p class="texto-suave">${esc([d.e, d.r, d.p, d.s].filter(Boolean).join(" · "))}</p>
+              <span class="num-rg">RG ${esc(d.rg)}</span></div>
+          </div>
+          <div class="doc-dados">
+            <div class="dado"><label>Tutor</label><span>${esc(d.t)}</span></div>
+            <div class="dado"><label>Cidade</label><span>${esc(d.c || "—")}</span></div>
+          </div>
+          ${fone ? `
+          <div class="publica-acoes">
+            <a class="btn btn-rosa btn-bloco" href="tel:${fone}">Ligar para o tutor · ${esc(foneFmt)}</a>
+            <a class="btn btn-verde btn-bloco" href="https://wa.me/55${fone}?text=${msg}" target="_blank" rel="noopener">Mandar mensagem no WhatsApp</a>
+          </div>` : ""}
+          <p class="texto-suave">Se puder, mantenha o animal em um lugar seguro, com água, até o tutor chegar.</p>
+        </section>`;
+    }
+  </script>
+</body>
+</html>

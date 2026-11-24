@@ -105,6 +105,39 @@ function cpfValido(cpf) {
 }
 
 const soDigitos = (v) => String(v || "").replace(/\D/g, "");
+
+/* LGPD: o CPF nunca aparece inteiro nas telas (ex.: 529.***.***-25) */
+function mascararCPF(cpf) {
+  const n = soDigitos(cpf);
+  return n.length === 11 ? `${n.slice(0, 3)}.***.***-${n.slice(9)}` : "—";
+}
+
+/* QR Code do RGA: os dados vão dentro do próprio link (depois do #),
+   então a página pública funciona sem servidor e sem guardar nada. */
+function codificar(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  let bin = "";
+  bytes.forEach((b) => (bin += String.fromCharCode(b)));
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function urlBase() {
+  const online = location.protocol.startsWith("http") && !NATIVO && location.hostname !== "localhost";
+  return online ? new URL(".", location.href).href : URL_PUBLICA;
+}
+function linkEncontrei(a) {
+  const t = tutorDe(a);
+  return urlBase() + "encontrei.html#" + codificar({
+    n: a.nome, e: a.especie, r: a.raca, p: a.pelagem, s: a.sexo, rg: a.rg,
+    t: (t.nome || "").split(" ")[0], f: soDigitos(t.telefone), c: t.cidade,
+  });
+}
+function qrCodeSVG(texto) {
+  if (typeof qrcode !== "function") return "";
+  const q = qrcode(0, "M");
+  q.addData(texto);
+  q.make();
+  return q.createSvgTag({ cellSize: 4, margin: 2, scalable: true, alt: "QR Code do RGA" });
+}
 function mascaraCPF(v) {
   return soDigitos(v).slice(0, 11)
     .replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
@@ -175,7 +208,8 @@ $("#fechar-modal").addEventListener("click", fecharModal);
 $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") fecharModal(); });
 
 /* Dados do usuário logado */
-const meusAnimais = () => animais.filter((a) => a.dono === usuario.id || (!a.dono && soDigitos(a.cpf) === soDigitos(usuario.cpf)));
+const meusAnimais = () => animais.filter((a) => a.dono === usuario.id ||
+  (!a.dono && usuario.cpf && soDigitos(a.cpf) === soDigitos(usuario.cpf)));
 const minhasConsultas = () => consultas
   .filter((c) => ehAdmin() || c.dono === usuario.id)
   .sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora));
@@ -196,6 +230,9 @@ function mostrarAuth(qual = "login") {
   $("#app").hidden = true;
 }
 $$("[data-auth]").forEach((b) => b.addEventListener("click", () => mostrarAuth(b.dataset.auth)));
+document.addEventListener("click", (e) => {
+  if (e.target.closest("[data-termos]")) { e.preventDefault(); abrirModal(`<div class="termos">${TERMOS}</div>`); }
+});
 aplicarMascaras($("#tela-login"));
 
 formsAuth.login.addEventListener("submit", (e) => {
@@ -221,12 +258,13 @@ formsAuth.conta.addEventListener("submit", (e) => {
   if (!v("cidade")) return erroEm(f, "Informe sua cidade.", "cidade");
   if (f.senha.value.length < 6) return erroEm(f, "A senha precisa ter pelo menos 6 caracteres.", "senha");
   if (f.senha.value !== f.senha2.value) return erroEm(f, "As senhas não são iguais.", "senha2");
+  if (!f.termos.checked) return erroEm(f, "Para criar a conta, aceite os Termos de uso e privacidade.", "termos");
   if (acharUsuario(v("email")) || acharUsuario(v("cpf"))) return erroEm(f, "Já existe uma conta com esse CPF ou e-mail.");
 
   const id = novoId();
   const u = {
     id, nome: v("nome"), cpf: v("cpf"), telefone: v("telefone"), email: v("email").toLowerCase(),
-    cidade: v("cidade"), senha: embaralharSenha(f.senha.value, id),
+    cidade: v("cidade"), senha: embaralharSenha(f.senha.value, id), aceiteTermos: hojeISO(),
   };
   usuarios.push(u);
   if (!gravar("rga_usuarios", usuarios)) { usuarios.pop(); return; }
@@ -272,7 +310,7 @@ function entrar(u) {
   else renderizar();
   $("#btn-ajuda").hidden = !!u.admin;
   $("#chat").hidden = true;
-  if (!u.admin) iniciarChat();
+  if (!u.admin) { iniciarChat(); agendarLembretes(); }
 }
 
 function sair() {
@@ -289,7 +327,7 @@ function sair() {
    MENU LATERAL (≡) E NAVEGAÇÃO
    ========================================================== */
 const MENU_TUTOR = [{ rota: "inicio", titulo: "Início", icone: "inicio" }, ...ATALHOS,
-  { rota: "ajuda", titulo: "Ajuda", icone: "ajuda" }];
+  { rota: "meus-dados", titulo: "Meus dados", icone: "usuario" }, { rota: "ajuda", titulo: "Ajuda", icone: "ajuda" }];
 
 $("#abrir-menu").innerHTML = icone("menu");
 $("#chat-enviar").innerHTML = icone("enviar");
@@ -308,12 +346,13 @@ $("#fundo-menu").addEventListener("click", fecharMenu);
 $("#btn-sair").addEventListener("click", sair);
 
 const ROTAS_TUTOR = {
+  desaparecidos: telaDesaparecidos, "meus-dados": telaMeusDados,
   inicio: telaInicio, rga: telaRgaLista, consultas: telaConsultas,
   marcar: telaMarcar, noticias: telaNoticias, cuidados: telaCuidados, adocao: telaAdocao, ajuda: telaAjuda,
 };
 const ROTAS_ADMIN = {
   painel: telaPainel, emitir: () => telaFormRga(), rgas: telaRgasAdmin, tutores: telaTutores,
-  agenda: telaAgenda, solicitacoes: telaSolicitacoes,
+  agenda: telaAgenda, solicitacoes: telaSolicitacoes, desaparecidos: telaDesaparecidos,
 };
 
 function renderizar() {
@@ -358,6 +397,8 @@ function telaInicio() {
           <span>${escapar(prox.tipo)} · ${escapar(prox.subtipo)}${animalProx ? ` · ${escapar(animalProx.nome)}` : ""}</span>
         </div>
       </a>` : ""}
+
+    ${avisoVacinas(meusAnimais())}
 
     <div class="atalhos">
       ${ATALHOS.map((a) => `
@@ -619,13 +660,6 @@ function situacaoVacina(v) {
   return v.proxima < hojeISO() ? { classe: "atrasada", texto: "Reforço atrasado" } : { classe: "ok", texto: "Em dia" };
 }
 
-/* Código de barras decorativo a partir do número do RG */
-function codigoBarras(rg) {
-  const d = soDigitos(rg);
-  return `<div class="codigo-barras">${[...(d + [...d].reverse().join(""))]
-    .map((n) => `<i style="width:${(n % 3) + 1}px"></i><i class="vao"></i>`).join("")}</div>`;
-}
-
 const dado = (rotulo, valor) => `<div class="dado"><label>${rotulo}</label><span>${escapar(valor || "—")}</span></div>`;
 
 let abaRga = "vacinacao";
@@ -638,6 +672,10 @@ function telaRgaDetalhe(id) {
 
   conteudo.innerHTML = `
     <a href="${admin ? "#rgas" : "#rga"}" class="voltar nao-imprimir">${icone("voltar")} ${admin ? "RGAs emitidos" : "Meus RGAs"}</a>
+
+    ${a.desaparecido ? `
+      <div class="faixa-desaparecido">${icone("alerta")}<div><strong>Animal desaparecido</strong>
+        <span>Desde ${formatarData(a.desaparecido.data)}${a.desaparecido.local ? ` · visto por último em ${escapar(a.desaparecido.local)}` : ""}</span></div></div>` : ""}
 
     <article class="documento">
       <header class="doc-topo">
@@ -659,7 +697,10 @@ function telaRgaDetalhe(id) {
           ${dado("Porte", a.porte + (a.peso ? ` · ${a.peso} kg` : ""))}
         </div>
       </div>
-      <footer class="doc-rodape"><span>Emitido em ${formatarData(a.emissao)}${a.emitidoPor ? ` por ${escapar(a.emitidoPor)}` : ""}</span>${codigoBarras(a.rg)}</footer>
+      <footer class="doc-rodape">
+        <span>Emitido em ${formatarData(a.emissao)}${a.emitidoPor ? ` por ${escapar(a.emitidoPor)}` : ""}</span>
+        <button class="qr-mini" id="qr-mini" aria-label="Ampliar QR Code">${qrCodeSVG(linkEncontrei(a))}</button>
+      </footer>
     </article>
 
     <div class="abas nao-imprimir" role="tablist">
@@ -673,6 +714,7 @@ function telaRgaDetalhe(id) {
       ${admin ? `
         <button class="btn btn-contorno btn-icone-texto" id="btn-excluir">${icone("lixo")}<span>Excluir</span></button>
         <a class="btn btn-contorno btn-icone-texto" href="#editar/${a.id}">${icone("editar")}<span>Editar</span></a>` : ""}
+      <button class="btn btn-contorno btn-icone-texto" id="btn-qr">${icone("qr")}<span>QR Code</span></button>
       ${NATIVO ? "" : `<button class="btn btn-verde btn-icone-texto" id="btn-imprimir">${icone("imprimir")}<span>Imprimir</span></button>`}
     </div>`;
 
@@ -720,12 +762,29 @@ function telaRgaDetalhe(id) {
         <div class="aviso-perda">${icone("local")}<p>Encontrou este animal? Entre em contato com o tutor pelos dados abaixo.</p></div>
         <div class="doc-dados">
           ${dado("Tutor responsável", t.nome)}
+          ${dado("CPF do tutor", mascararCPF(t.cpf))}
           ${dado("Telefone", t.telefone)}
           ${dado("Cidade / UF", t.cidade)}
           ${dado("E-mail", t.email)}
           <div class="dado dado-largo"><label>Endereço</label><span>${escapar(a.endereco || "Não informado")}</span></div>
           ${dado("Microchip", a.microchip || "Não possui")}
+        </div>
+        <div class="bloco-desaparecido nao-imprimir">
+          ${a.desaparecido ? `
+            <p><strong>Marcado como desaparecido</strong> desde ${formatarData(a.desaparecido.data)}.
+              ${a.desaparecido.obs ? escapar(a.desaparecido.obs) : ""}</p>
+            <button class="btn btn-verde" id="btn-encontrado">${icone("check")}<span>Animal encontrado</span></button>`
+          : `<p class="texto-suave">Se o animal sumir, marque aqui: ele passa a aparecer na lista de Desaparecidos.</p>
+            <button class="btn btn-contorno" id="btn-desaparecido">${icone("alerta")}<span>Marcar como desaparecido</span></button>`}
         </div>`;
+      $("#btn-desaparecido")?.addEventListener("click", () => marcarDesaparecido(a));
+      $("#btn-encontrado")?.addEventListener("click", () => {
+        if (!confirm(`Que bom! Confirmar que ${a.nome} foi encontrado(a)?`)) return;
+        delete a.desaparecido;
+        gravar("rga_animais", animais);
+        toast(`${a.nome} saiu da lista de desaparecidos.`);
+        telaRgaDetalhe(a.id);
+      });
     }
 
     if (abaRga === "saude") {
@@ -747,6 +806,20 @@ function telaRgaDetalhe(id) {
   desenharAba();
 
   $("#btn-imprimir")?.addEventListener("click", () => window.print());
+  const mostrarQR = () => {
+    const link = linkEncontrei(a);
+    abrirModal(`
+      <div class="qr-grande">
+        <h2>QR Code de ${escapar(a.nome)}</h2>
+        <p class="texto-suave">Imprima e coloque na coleira. Quem encontrar o animal escaneia com a câmera do celular e vê o nome dele e o seu telefone.</p>
+        <div class="qr-caixa">${qrCodeSVG(link)}</div>
+        <span class="num-rg">RG ${a.rg}</span>
+        <a class="link" href="${link}" target="_blank" rel="noopener">Ver a página que abre ao escanear</a>
+        <small class="texto-suave">Os dados ficam dentro do próprio QR Code. Se o telefone mudar, gere e imprima de novo.</small>
+      </div>`);
+  };
+  $("#btn-qr").addEventListener("click", mostrarQR);
+  $("#qr-mini").addEventListener("click", mostrarQR);
   $("#btn-excluir")?.addEventListener("click", () => {
     if (!confirm(`Excluir o RGA de ${a.nome}? Esta ação não pode ser desfeita.`)) return;
     animais = animais.filter((x) => x.id !== a.id);
@@ -1024,6 +1097,16 @@ function telaAjuda() {
       ${listaDuvidas(DUVIDAS)}
       ${formDuvida()}
     </section>
+    <section class="painel sobre">
+      <h2>Sobre o projeto</h2>
+      <p>O RGA é um <strong>protótipo acadêmico (TCC)</strong>, sem valor de documento oficial.
+        O cadastro oficial e gratuito de cães e gatos do governo federal é o <strong>SinPatinhas</strong>
+        (Lei 15.046/2024), feito com a conta gov.br.</p>
+      <p>A proposta do RGA é reunir, num só app, o documento do animal, a carteira de vacinação,
+        o agendamento de atendimentos, a adoção e a busca por animais desaparecidos.</p>
+      <a class="link" href="https://sinpatinhas.mma.gov.br" target="_blank" rel="noopener">Conhecer o SinPatinhas</a>
+      <button class="link" data-termos>Termos de uso e privacidade</button>
+    </section>
     ${minhas.length ? `
       <section class="painel">
         <h2>Suas dúvidas enviadas</h2>
@@ -1031,6 +1114,175 @@ function telaAjuda() {
           <li><span>${escapar(d.texto)}</span><small>${formatarData(d.data)} · aguardando resposta</small></li>`).join("")}</ul>
       </section>` : ""}`;
   ligarFormDuvida();
+}
+
+/* ==========================================================
+   LEMBRETES DE VACINA
+   ========================================================== */
+function vacinasPendentes(lista, dias = 30) {
+  const limite = isoDe(Date.now() + dias * 86400000);
+  const hoje = hojeISO();
+  return lista.flatMap((a) => a.vacinas.filter((v) => v.proxima && v.proxima <= limite)
+    .map((v) => ({ animal: a, vacina: v, atrasada: v.proxima < hoje })))
+    .sort((x, y) => x.vacina.proxima.localeCompare(y.vacina.proxima));
+}
+
+function avisoVacinas(lista) {
+  const pend = vacinasPendentes(lista);
+  if (!pend.length) return "";
+  return `
+    <section class="aviso-vacinas">
+      <div class="aviso-vacinas-topo">${icone("vacina")}<strong>Lembretes de vacina</strong></div>
+      <ul>${pend.map((p) => `
+        <li><a href="#rga/${p.animal.id}">
+          <span><strong>${escapar(p.animal.nome)}</strong> · ${escapar(p.vacina.nome)}</span>
+          <span class="status ${p.atrasada ? "atrasada" : "ok"}">${p.atrasada ? "Atrasada desde" : "Vence em"} ${formatarData(p.vacina.proxima)}</span>
+        </a></li>`).join("")}</ul>
+    </section>`;
+}
+
+/* No app Android: notificações no celular 7 dias antes e no dia da próxima dose */
+async function agendarLembretes() {
+  const LN = NATIVO && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
+  if (!LN || !usuario || usuario.admin) return;
+  try {
+    const perm = await LN.requestPermissions();
+    if (perm.display !== "granted") return;
+    const pendentes = await LN.getPending();
+    if (pendentes.notifications.length) await LN.cancel({ notifications: pendentes.notifications.map((n) => ({ id: n.id })) });
+    const agora = new Date();
+    const avisos = [];
+    let id = 1;
+    meusAnimais().forEach((a) => a.vacinas.forEach((v) => {
+      if (!v.proxima) return;
+      [[7, `Faltam 7 dias para a vacina ${v.nome} de ${a.nome}.`], [0, `Hoje é dia da vacina ${v.nome} de ${a.nome}!`]]
+        .forEach(([antes, texto]) => {
+          const quando = new Date(v.proxima + "T09:00:00");
+          quando.setDate(quando.getDate() - antes);
+          if (quando > agora) avisos.push({ id: id++, title: "Lembrete de vacina — RGA", body: texto, schedule: { at: quando } });
+        });
+    }));
+    if (avisos.length) await LN.schedule({ notifications: avisos.slice(0, 60) });
+  } catch { /* sem permissão ou plugin indisponível: o aviso aparece só dentro do app */ }
+}
+
+/* ==========================================================
+   DESAPARECIDOS
+   ========================================================== */
+function marcarDesaparecido(a) {
+  abrirModal(`
+    <form id="form-desaparecido" class="auth-form" novalidate>
+      <h2>${escapar(a.nome)} desapareceu</h2>
+      <p class="texto-suave">O animal vai aparecer na lista de Desaparecidos, com o seu telefone para contato.</p>
+      <label class="campo"><span>Desde quando?</span><input type="date" name="data" value="${hojeISO()}" max="${hojeISO()}"></label>
+      <label class="campo"><span>Onde foi visto por último?</span><input name="local" maxlength="80" placeholder="Bairro, rua ou ponto de referência"></label>
+      <label class="campo"><span>Observações (coleira, comportamento…)</span><textarea name="obs" rows="2" maxlength="200"></textarea></label>
+      <p class="erro" role="alert"></p>
+      <button class="btn btn-rosa btn-bloco">Marcar como desaparecido</button>
+    </form>`);
+  $("#form-desaparecido").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const f = e.target;
+    if (!f.data.value) return erroEm(f, "Informe a data.", "data");
+    a.desaparecido = { data: f.data.value, local: f.local.value.trim(), obs: f.obs.value.trim(), marcadoPor: usuario.nome };
+    gravar("rga_animais", animais);
+    fecharModal();
+    toast(`${a.nome} foi marcado(a) como desaparecido(a).`);
+    telaRgaDetalhe(a.id);
+  });
+}
+
+function telaDesaparecidos() {
+  const lista = animais.filter((a) => a.desaparecido)
+    .sort((x, y) => y.desaparecido.data.localeCompare(x.desaparecido.data));
+  const meus = ehAdmin() ? null : new Set(meusAnimais().map((a) => a.id));
+  conteudo.innerHTML = `
+    ${cabecalho("Desaparecidos", "Viu algum destes animais? Avise o tutor.")}
+    ${lista.length ? `<div class="grade-cartoes">${lista.map((a) => {
+      const t = tutorDe(a);
+      const fone = soDigitos(t.telefone);
+      return `
+      <article class="cartao-adocao cartao-desaparecido">
+        <div class="foto-animal grande" ${a.foto ? `style="background-image:url(${a.foto})"` : ""}>${a.foto ? "" : EMOJI_ESPECIE[a.especie] || "🐾"}</div>
+        <div class="adocao-info">
+          <span class="status atrasada">${icone("alerta")}Desaparecido desde ${formatarData(a.desaparecido.data)}</span>
+          <strong>${escapar(a.nome)}</strong>
+          <small>${escapar([a.especie, a.raca, a.pelagem, a.sexo].filter(Boolean).join(" · "))}</small>
+          ${a.desaparecido.local ? `<p>Visto por último em <strong>${escapar(a.desaparecido.local)}</strong></p>` : ""}
+          ${a.desaparecido.obs ? `<p class="texto-suave">${escapar(a.desaparecido.obs)}</p>` : ""}
+          <p class="texto-suave">Tutor: ${escapar((t.nome || "").split(" ")[0])}${t.cidade ? ` · ${escapar(t.cidade)}` : ""}</p>
+          <div class="acoes-cartao">
+            ${fone ? `<a class="btn btn-rosa btn-pequeno" href="tel:${fone}">Ligar para o tutor</a>` : ""}
+            ${ehAdmin() || meus.has(a.id) ? `<a class="btn btn-contorno btn-pequeno" href="#rga/${a.id}">Ver RGA</a>` : ""}
+          </div>
+        </div>
+      </article>`;
+    }).join("")}</div>` : vazio("Nenhum animal desaparecido no momento. Que bom!")}`;
+}
+
+/* ==========================================================
+   MEUS DADOS (LGPD: ver, corrigir e excluir)
+   ========================================================== */
+function telaMeusDados() {
+  conteudo.innerHTML = `
+    ${cabecalho("Meus dados", "Veja e corrija suas informações")}
+    <section class="painel">
+      <div class="doc-dados">
+        ${dado("Nome", usuario.nome)}
+        ${dado("CPF", mascararCPF(usuario.cpf))}
+        ${dado("E-mail (login)", usuario.email)}
+        ${dado("Termos aceitos em", usuario.aceiteTermos ? formatarData(usuario.aceiteTermos) : "—")}
+      </div>
+      <form id="form-meus-dados" class="auth-form form-meus-dados" novalidate>
+        <div class="grade-2">
+          <label class="campo"><span>Telefone</span><input name="telefone" inputmode="tel" maxlength="15" value="${escapar(usuario.telefone)}"></label>
+          <label class="campo"><span>Cidade / UF</span><input name="cidade" maxlength="40" value="${escapar(usuario.cidade)}"></label>
+        </div>
+        <p class="erro" role="alert"></p>
+        <div class="acoes"><button class="link" type="button" data-termos>Ler os termos</button>
+          <button class="btn btn-rosa">Salvar</button></div>
+      </form>
+    </section>
+    <section class="painel zona-perigo">
+      <h2>Excluir minha conta</h2>
+      <p class="texto-suave">Apaga sua conta, suas consultas, pedidos de adoção e dúvidas. Os RGAs continuam
+        registrados no posto de atendimento, mas deixam de aparecer para você.</p>
+      <form id="form-excluir-conta" class="linha-envio" novalidate>
+        <input name="senha" type="password" placeholder="Digite sua senha para confirmar">
+        <button class="btn btn-contorno">Excluir conta</button>
+      </form>
+    </section>`;
+  aplicarMascaras(conteudo);
+  $("#form-meus-dados").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const f = e.target;
+    if (soDigitos(f.telefone.value).length < 10) return erroEm(f, "Telefone incompleto.", "telefone");
+    if (!f.cidade.value.trim()) return erroEm(f, "Informe sua cidade.", "cidade");
+    usuario.telefone = f.telefone.value.trim();
+    usuario.cidade = f.cidade.value.trim();
+    gravar("rga_usuarios", usuarios);
+    $(".erro", f).textContent = "";
+    toast("Dados atualizados.");
+  });
+  $("#form-excluir-conta").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (usuario.senha !== embaralharSenha(e.target.senha.value, usuario.id)) { toast("Senha incorreta."); return; }
+    if (!confirm("Tem certeza? Esta ação não pode ser desfeita.")) return;
+    const id = usuario.id;
+    animais.forEach((a) => { if (a.dono === id) a.dono = null; });
+    usuarios = usuarios.filter((u) => u.id !== id);
+    consultas = consultas.filter((c) => c.dono !== id);
+    interesses = interesses.filter((i) => i.dono !== id);
+    duvidasEnviadas = duvidasEnviadas.filter((d) => d.dono !== id);
+    [["rga_usuarios", usuarios], ["rga_animais", animais], ["rga_consultas", consultas],
+      ["rga_interesses", interesses], ["rga_duvidas", duvidasEnviadas]].forEach(([k, v]) => gravar(k, v));
+    usuario = null;
+    gravar("rga_sessao", null);
+    $("#chat").hidden = true;
+    history.replaceState(null, "", location.pathname);
+    mostrarAuth("login");
+    toast("Conta excluída.");
+  });
 }
 
 /* ==========================================================
@@ -1047,6 +1299,7 @@ function telaPainel() {
     { n: tutoresComConta().length, t: "Tutores com conta", cor: "rosa", rota: "tutores" },
     { n: deHoje.length, t: "Consultas hoje", cor: "dourado", rota: "agenda" },
     { n: interesses.length + duvidasEnviadas.length, t: "Solicitações", cor: "verde", rota: "solicitacoes" },
+    { n: animais.filter((a) => a.desaparecido).length, t: "Desaparecidos", cor: "rosa", rota: "desaparecidos" },
   ];
   conteudo.innerHTML = `
     ${cabecalho("Painel do administrador", `Olá, ${escapar(usuario.nome)}`,
@@ -1070,8 +1323,10 @@ function listaRgasAdmin(lista) {
     <li><a href="#rga/${a.id}">
       <div class="foto-animal" ${a.foto ? `style="background-image:url(${a.foto})"` : ""}>${a.foto ? "" : EMOJI_ESPECIE[a.especie] || "🐾"}</div>
       <div><strong>${escapar(a.nome)}</strong><span class="num-rg">RG ${a.rg}</span>
-        <small>${escapar(tutorDe(a).nome)} · CPF ${escapar(a.cpf)}</small></div>
-      ${tutorDe(a).temConta ? "" : `<span class="status sem-conta">Tutor sem conta</span>`}
+        <small>${escapar(tutorDe(a).nome)} · CPF ${mascararCPF(a.cpf)}</small>
+        ${a.desaparecido || !tutorDe(a).temConta ? `<span class="selos">
+          ${a.desaparecido ? `<span class="status atrasada">Desaparecido</span>` : ""}
+          ${tutorDe(a).temConta ? "" : `<span class="status sem-conta">Tutor sem conta</span>`}</span>` : ""}</div>
     </a></li>`).join("")}</ul>`;
 }
 
@@ -1107,7 +1362,7 @@ function telaTutores() {
       <h2>Com conta no app</h2>
       ${tutoresComConta().length ? `<ul class="lista-simples">${tutoresComConta().map((u) => `
         <li class="linha-pessoa"><div><strong>${escapar(u.nome)}</strong>
-          <small>CPF ${escapar(u.cpf)} · ${escapar(u.telefone)} · ${escapar(u.email)}</small></div>
+          <small>CPF ${mascararCPF(u.cpf)} · ${escapar(u.telefone)} · ${escapar(u.email)}</small></div>
           <span class="status ok">${qtd(u.cpf)} RGA(s)</span></li>`).join("")}</ul>`
         : `<p class="texto-suave">Nenhum tutor criou conta ainda.</p>`}
     </section>
@@ -1117,7 +1372,7 @@ function telaTutores() {
       <p class="texto-suave">Quando criarem uma conta com este CPF, os RGAs aparecem para eles automaticamente.</p>
       <ul class="lista-simples">${semConta.map((a) => `
         <li class="linha-pessoa"><div><strong>${escapar(a.tutor)}</strong>
-          <small>CPF ${escapar(a.cpf)} · ${escapar(a.telefoneTutor || "")}</small></div>
+          <small>CPF ${mascararCPF(a.cpf)} · ${escapar(a.telefoneTutor || "")}</small></div>
           <span class="status sem-conta">${qtd(a.cpf)} RGA(s)</span></li>`).join("")}</ul>
     </section>` : ""}
     <section class="painel">
