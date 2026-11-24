@@ -23,6 +23,8 @@ let animais = ler("rga_animais", []);
 let consultas = ler("rga_consultas", []);
 let interesses = ler("rga_interesses", []);
 let duvidasEnviadas = ler("rga_duvidas", []);
+let denuncias = ler("rga_denuncias", []);
+let reencontros = ler("rga_reencontros", []);
 let usuario = usuarios.find((u) => u.id === ler("rga_sessao", null)) || null;
 
 /* Administrador padrão do protótipo: admin@rga.sc / admin123
@@ -346,13 +348,14 @@ $("#fundo-menu").addEventListener("click", fecharMenu);
 $("#btn-sair").addEventListener("click", sair);
 
 const ROTAS_TUTOR = {
-  desaparecidos: telaDesaparecidos, "meus-dados": telaMeusDados,
+  desaparecidos: telaDesaparecidos, "meus-dados": telaMeusDados, denunciar: telaDenunciar, estatisticas: telaEstatisticas,
   inicio: telaInicio, rga: telaRgaLista, consultas: telaConsultas,
   marcar: telaMarcar, noticias: telaNoticias, cuidados: telaCuidados, adocao: telaAdocao, ajuda: telaAjuda,
 };
 const ROTAS_ADMIN = {
   painel: telaPainel, emitir: () => telaFormRga(), rgas: telaRgasAdmin, tutores: telaTutores,
   agenda: telaAgenda, solicitacoes: telaSolicitacoes, desaparecidos: telaDesaparecidos,
+  denuncias: telaDenunciasAdmin, estatisticas: telaEstatisticas,
 };
 
 function renderizar() {
@@ -780,6 +783,8 @@ function telaRgaDetalhe(id) {
       $("#btn-desaparecido")?.addEventListener("click", () => marcarDesaparecido(a));
       $("#btn-encontrado")?.addEventListener("click", () => {
         if (!confirm(`Que bom! Confirmar que ${a.nome} foi encontrado(a)?`)) return;
+        reencontros.push({ id: novoId(), animalId: a.id, data: hojeISO(), desde: a.desaparecido.data });
+        gravar("rga_reencontros", reencontros);
         delete a.desaparecido;
         gravar("rga_animais", animais);
         toast(`${a.nome} saiu da lista de desaparecidos.`);
@@ -1286,6 +1291,396 @@ function telaMeusDados() {
 }
 
 /* ==========================================================
+   DENÚNCIA DE MAUS-TRATOS
+   ========================================================== */
+function reduzirFoto(arquivo) {
+  return new Promise((ok) => {
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const escala = Math.min(1, 400 / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width * escala);
+        c.height = Math.round(img.height * escala);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        ok(c.toDataURL("image/jpeg", 0.75));
+      };
+      img.src = leitor.result;
+    };
+    leitor.readAsDataURL(arquivo);
+  });
+}
+
+const classeStatus = (st) => ({ "Recebida": "sem-conta", "Em análise": "sem-conta",
+  "Encaminhada às autoridades": "ok", "Concluída": "ok" })[st] || "";
+
+function telaDenunciar() {
+  // Denúncias anônimas não guardam quem denunciou: o aparelho só lembra os protocolos
+  const meusProtocolos = ler("rga_meus_protocolos", []);
+  const minhas = denuncias.filter((d) => meusProtocolos.includes(d.protocolo))
+    .sort((a, b) => b.data.localeCompare(a.data));
+  let foto = null;
+
+  conteudo.innerHTML = `
+    ${cabecalho("Denunciar maus-tratos", "Maus-tratos a animais é crime")}
+
+    <a class="alerta-190" href="tel:190">
+      ${icone("telefone")}
+      <div><strong>Está acontecendo agora? Ligue 190</strong>
+        <span>Polícia Militar — não confronte o agressor</span></div>
+    </a>
+
+    <section class="painel">
+      <h2>Canais oficiais</h2>
+      <div class="canais">${CANAIS_DENUNCIA.filter((c) => !c.destaque).map((c) => `
+        <div class="canal">
+          <strong>${c.titulo}</strong>
+          ${c.tel ? `<a class="canal-numero" href="tel:${c.tel}">${icone("telefone")}${c.numero}</a>`
+            : `<span class="canal-numero">${c.numero}</span>`}
+          <p>${c.texto}</p>
+        </div>`).join("")}</div>
+      <p class="lei">Lei de Crimes Ambientais (Lei 9.605/1998), art. 32. Para cães e gatos, a pena é de
+        <strong>2 a 5 anos de reclusão</strong>, multa e proibição da guarda (Lei 14.064/2020 — Lei Sansão).</p>
+    </section>
+
+    <section class="painel">
+      <h2>Registrar denúncia no RGA</h2>
+      <p class="texto-suave">Protótipo de TCC: a denúncia fica registrada para a equipe do RGA, mas
+        <strong>não é enviada às autoridades</strong>. Use também os canais oficiais acima.</p>
+      <form id="form-denuncia" class="formulario" novalidate>
+        <div class="grade">
+          <label class="campo"><span>Tipo de maus-tratos *</span>
+            <select name="tipo"><option value="">Selecione</option>${TIPOS_DENUNCIA.map((t) => `<option>${t}</option>`).join("")}</select></label>
+          <label class="campo"><span>Animal</span>
+            <select name="especie">${Object.keys(EMOJI_ESPECIE).map((e) => `<option>${e}</option>`).join("")}<option>Não sei</option></select></label>
+          <label class="campo"><span>Quando? *</span><input type="date" name="data" value="${hojeISO()}" max="${hojeISO()}"></label>
+          <label class="campo"><span>Cidade *</span><input name="cidade" maxlength="40" value="${escapar(usuario.cidade || "")}"></label>
+        </div>
+        <label class="campo"><span>Local (endereço ou ponto de referência) *</span><input name="local" maxlength="100"></label>
+        <label class="campo"><span>O que está acontecendo? *</span>
+          <textarea name="descricao" rows="4" maxlength="600" placeholder="Descreva o que viu, há quanto tempo acontece e como está o animal."></textarea></label>
+        <label class="campo foto-denuncia"><span>Foto (opcional)</span>
+          <span class="btn btn-contorno btn-pequeno">${icone("rga")}<span id="nome-foto">Anexar foto</span></span>
+          <input type="file" name="foto" accept="image/*" hidden></label>
+        <label class="campo checkbox aceite"><input type="checkbox" name="anonima" checked>
+          <span>Fazer denúncia <strong>anônima</strong> (seu nome e telefone não ficam registrados)</span></label>
+        <p class="erro" role="alert"></p>
+        <div class="acoes"><button class="btn btn-rosa">${icone("megafone")}<span>Enviar denúncia</span></button></div>
+      </form>
+    </section>
+
+    ${minhas.length ? `
+    <section class="painel">
+      <h2>Minhas denúncias</h2>
+      <ul class="lista-simples">${minhas.map((d) => `
+        <li class="linha-pessoa"><div><strong>${d.protocolo} · ${escapar(d.tipo)}</strong>
+          <small>${formatarData(d.data)} · ${escapar(d.cidade)}${d.anonima ? " · anônima" : ""}</small></div>
+          <span class="status ${classeStatus(d.status)}">${d.status}</span></li>`).join("")}</ul>
+    </section>` : ""}`;
+
+  const form = $("#form-denuncia");
+  form.foto.addEventListener("change", async (e) => {
+    if (!e.target.files[0]) return;
+    foto = await reduzirFoto(e.target.files[0]);
+    $("#nome-foto").textContent = "Foto anexada ✓";
+  });
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const v = (n) => form.elements[n].value.trim();
+    if (!v("tipo")) return erroEm(form, "Escolha o tipo de maus-tratos.", "tipo");
+    if (!v("data")) return erroEm(form, "Informe quando aconteceu.", "data");
+    if (!v("cidade")) return erroEm(form, "Informe a cidade.", "cidade");
+    if (!v("local")) return erroEm(form, "Informe o local.", "local");
+    if (v("descricao").length < 20) return erroEm(form, "Descreva o que aconteceu (pelo menos 20 caracteres).", "descricao");
+
+    const seq = ler("rga_seq_denuncia", 0) + 1;
+    gravar("rga_seq_denuncia", seq);
+    const anonima = form.anonima.checked;
+    const d = {
+      id: novoId(), protocolo: `DEN-${new Date().getFullYear()}-${String(seq).padStart(5, "0")}`,
+      tipo: v("tipo"), especie: v("especie"), data: v("data"), cidade: v("cidade"), local: v("local"),
+      descricao: v("descricao"), foto, anonima, criada: hojeISO(), status: STATUS_DENUNCIA[0],
+      historico: [{ status: STATUS_DENUNCIA[0], data: hojeISO() }],
+      ...(anonima ? {} : { denunciante: { nome: usuario.nome, telefone: usuario.telefone, email: usuario.email } }),
+    };
+    denuncias.push(d);
+    if (!gravar("rga_denuncias", denuncias)) { denuncias.pop(); return; }
+    gravar("rga_meus_protocolos", [...meusProtocolos, d.protocolo]);
+    telaDenunciar();
+    abrirModal(`
+      <div class="ticket">
+        ${icone("megafone")}
+        <p class="texto-suave">Denúncia registrada</p>
+        <div class="protocolo">${d.protocolo}</div>
+        <p>Guarde este número para acompanhar a denúncia em “Minhas denúncias”.</p>
+        <small class="texto-suave">Lembre-se: o RGA é um protótipo. Para a denúncia chegar às autoridades,
+          use também o 181, a Delegacia de Proteção Animal ou, em flagrante, o 190.</small>
+        <button class="btn btn-rosa btn-bloco" onclick="document.getElementById('modal').close()">Ok</button>
+      </div>`);
+  });
+}
+
+let filtroDenuncia = "Todas";
+function telaDenunciasAdmin() {
+  const filtros = ["Todas", ...STATUS_DENUNCIA];
+  const lista = denuncias.filter((d) => filtroDenuncia === "Todas" || d.status === filtroDenuncia)
+    .sort((a, b) => b.criada.localeCompare(a.criada) || b.protocolo.localeCompare(a.protocolo));
+  conteudo.innerHTML = `
+    ${cabecalho("Denúncias de maus-tratos", `${denuncias.length} registrada(s)`)}
+    <div class="opcoes filtros">${filtros.map((f) => {
+      const n = f === "Todas" ? denuncias.length : denuncias.filter((d) => d.status === f).length;
+      return `<button class="opcao ${filtroDenuncia === f ? "ativa" : ""}" data-filtro="${f}">${f} (${n})</button>`;
+    }).join("")}</div>
+    ${lista.length ? lista.map((d) => `
+      <article class="painel denuncia">
+        <div class="denuncia-topo">
+          <div><strong>${d.protocolo}</strong><span class="tag cor-rosa">${escapar(d.tipo)}</span></div>
+          <select data-status="${d.id}" aria-label="Situação da denúncia ${d.protocolo}">
+            ${STATUS_DENUNCIA.map((st) => `<option ${st === d.status ? "selected" : ""}>${st}</option>`).join("")}</select>
+        </div>
+        <div class="denuncia-corpo">
+          ${d.foto ? `<div class="foto-animal grande denuncia-foto" style="background-image:url(${d.foto})"></div>` : ""}
+          <div>
+            <p>${escapar(d.descricao)}</p>
+            <div class="doc-dados">
+              ${dado("Local", `${d.local} — ${d.cidade}`)}
+              ${dado("Quando", formatarData(d.data))}
+              ${dado("Animal", d.especie)}
+              ${dado("Denunciante", d.anonima ? "Anônimo" : `${d.denunciante.nome} · ${d.denunciante.telefone}`)}
+            </div>
+            <small class="texto-suave">Histórico: ${d.historico.map((h) => `${h.status} (${formatarData(h.data)})`).join(" → ")}</small>
+          </div>
+        </div>
+      </article>`).join("") : vazio("Nenhuma denúncia nesta situação.")}`;
+
+  $$("[data-filtro]").forEach((b) => b.addEventListener("click", () => { filtroDenuncia = b.dataset.filtro; telaDenunciasAdmin(); }));
+  $$("[data-status]").forEach((sel) => sel.addEventListener("change", () => {
+    const d = denuncias.find((x) => x.id === sel.dataset.status);
+    d.status = sel.value;
+    d.historico.push({ status: sel.value, data: hojeISO() });
+    gravar("rga_denuncias", denuncias);
+    toast(`${d.protocolo}: ${sel.value}`);
+    telaDenunciasAdmin();
+  }));
+}
+
+/* ==========================================================
+   ESTATÍSTICAS GERAIS (só números agregados, sem dados pessoais)
+   ========================================================== */
+const pct = (parte, total) => (total ? Math.round((parte / total) * 100) : 0);
+
+function contar(lista, chave, ordem) {
+  const mapa = new Map((ordem || []).map((k) => [k, 0]));
+  lista.forEach((x) => { const k = chave(x); mapa.set(k, (mapa.get(k) || 0) + 1); });
+  return [...mapa].map(([rotulo, valor]) => ({ rotulo, valor }));
+}
+
+/* Barras horizontais: uma cor só, valor escrito ao lado de cada barra */
+function grafBarras(dados, total) {
+  const max = Math.max(1, ...dados.map((d) => d.valor));
+  return `<div class="gb" role="table">${dados.map((d) => `
+    <div class="gb-linha" role="row" title="${escapar(d.rotulo)}: ${d.valor}">
+      <span class="gb-rotulo" role="cell">${escapar(d.rotulo)}</span>
+      <span class="gb-trilho" role="cell"><span class="gb-barra" style="width:${d.valor ? Math.max(1.5, (d.valor / max) * 100) : 0}%"></span></span>
+      <span class="gb-valor" role="cell">${d.valor}${total ? `<small> ${pct(d.valor, total)}%</small>` : ""}</span>
+    </div>`).join("")}</div>`;
+}
+
+/* Colunas por mês (últimos 6 meses) */
+function grafMeses(datas) {
+  const agora = new Date();
+  const meses = Array.from({ length: 6 }, (_, i) => new Date(agora.getFullYear(), agora.getMonth() - 5 + i, 1));
+  const dados = meses.map((m) => {
+    const chave = `${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, "0")}`;
+    return { rotulo: MESES[m.getMonth()].slice(0, 3), ano: m.getFullYear(), valor: datas.filter((d) => d && d.startsWith(chave)).length };
+  });
+  const max = Math.max(1, ...dados.map((d) => d.valor));
+  return `<div class="gc" role="table">${dados.map((d) => `
+    <div class="gc-coluna" role="row" title="${d.rotulo}/${d.ano}: ${d.valor}">
+      <span class="gc-valor" role="cell">${d.valor}</span>
+      <span class="gc-trilho"><span class="gc-barra" style="height:${d.valor ? Math.max(3, (d.valor / max) * 100) : 0}%"></span></span>
+      <span class="gc-rotulo" role="cell">${d.rotulo}</span>
+    </div>`).join("")}</div>`;
+}
+
+function medidor(titulo, parte, total, detalhe) {
+  return `
+    <div class="medidor">
+      <div class="medidor-topo"><span>${titulo}</span><strong>${pct(parte, total)}%</strong></div>
+      <div class="medidor-trilho" role="img" aria-label="${titulo}: ${pct(parte, total)}%"><span style="width:${pct(parte, total)}%"></span></div>
+      <small>${detalhe}</small>
+    </div>`;
+}
+
+function telaEstatisticas() {
+  const hoje = hojeISO();
+  const comVacina = animais.filter((a) => a.vacinas.length);
+  const emDia = comVacina.filter((a) => a.vacinas.every((v) => !v.proxima || v.proxima >= hoje));
+  const castrados = animais.filter((a) => a.castrado);
+  const desap = animais.filter((a) => a.desaparecido);
+  const especies = contar(animais, (a) => a.especie, ["Cão", "Gato"]).sort((a, b) => b.valor - a.valor);
+  const tipos = contar(consultas, (c) => c.tipo, Object.keys(TIPOS_ATENDIMENTO));
+  const subtipos = contar(consultas, (c) => c.subtipo).sort((a, b) => b.valor - a.valor).slice(0, 6);
+  const denTipos = contar(denuncias, (d) => d.tipo).sort((a, b) => b.valor - a.valor);
+  const denStatus = contar(denuncias, (d) => d.status, STATUS_DENUNCIA);
+  const cidades = contar(animais, (a) => tutorDe(a).cidade || "Não informada").sort((a, b) => b.valor - a.valor).slice(0, 6);
+  const temDemo = [animais, consultas, denuncias, reencontros].some((l) => l.some((x) => x.demo));
+
+  const numeros = [
+    { n: animais.length, t: "RGAs emitidos", cor: "verde" },
+    { n: consultas.length, t: "Atendimentos agendados", cor: "rosa" },
+    { n: desap.length, t: "Desaparecidos agora", cor: "dourado" },
+    { n: reencontros.length, t: "Animais reencontrados", cor: "verde" },
+    { n: denuncias.length, t: "Denúncias de maus-tratos", cor: "rosa" },
+    { n: interesses.length, t: "Pedidos de adoção", cor: "dourado" },
+  ];
+
+  conteudo.innerHTML = `
+    ${cabecalho("Estatísticas", "Números gerais do RGA — sem dados pessoais")}
+    ${ehAdmin() ? `
+      <section class="painel painel-demo">
+        <div><strong>Dados de demonstração</strong>
+          <p class="texto-suave">Para a apresentação: cria RGAs, consultas e denúncias fictícias para preencher os gráficos.
+            Os dados reais não são alterados.</p></div>
+        <div class="acoes">
+          ${temDemo ? `<button class="btn btn-contorno" id="remover-demo">Remover dados de demonstração</button>` : ""}
+          <button class="btn btn-verde" id="gerar-demo">Gerar dados de demonstração</button>
+        </div>
+      </section>` : ""}
+
+    <div class="numeros numeros-3">${numeros.map((x) => `
+      <div class="numero cor-${x.cor}"><strong>${x.n}</strong><span>${x.t}</span></div>`).join("")}</div>
+
+    ${!animais.length && !denuncias.length && !consultas.length
+      ? vazio(ehAdmin() ? "Ainda não há dados. Gere dados de demonstração acima ou emita os primeiros RGAs."
+        : "Ainda não há dados suficientes para as estatísticas.")
+      : `
+    <div class="duas-colunas">
+      <section class="painel">
+        <h2>Saúde dos animais</h2>
+        ${medidor("Castrados", castrados.length, animais.length, `${castrados.length} de ${animais.length} animais`)}
+        ${medidor("Vacinação em dia", emDia.length, comVacina.length, `${emDia.length} de ${comVacina.length} animais com vacina registrada`)}
+      </section>
+      <section class="painel">
+        <h2>RGAs emitidos por mês</h2>
+        ${grafMeses(animais.map((a) => a.emissao))}
+      </section>
+      <section class="painel">
+        <h2>Animais por espécie</h2>
+        ${grafBarras(especies, animais.length)}
+      </section>
+      <section class="painel">
+        <h2>Animais por cidade</h2>
+        ${grafBarras(cidades, animais.length)}
+      </section>
+      <section class="painel">
+        <h2>Atendimentos por tipo</h2>
+        ${grafBarras(tipos, consultas.length)}
+        ${subtipos.length ? `<h3 class="subtitulo">Mais procurados</h3>${grafBarras(subtipos)}` : ""}
+      </section>
+      <section class="painel">
+        <h2>Denúncias de maus-tratos</h2>
+        ${denuncias.length ? `${grafBarras(denTipos, denuncias.length)}
+          <h3 class="subtitulo">Situação</h3>${grafBarras(denStatus, denuncias.length)}`
+          : `<p class="texto-suave">Nenhuma denúncia registrada.</p>`}
+      </section>
+    </div>`}
+    <p class="texto-suave nota">Protótipo: os números são calculados com os dados salvos neste aparelho.</p>`;
+
+  $("#gerar-demo")?.addEventListener("click", () => { gerarDemo(); toast("Dados de demonstração criados."); telaEstatisticas(); });
+  $("#remover-demo")?.addEventListener("click", () => {
+    if (!confirm("Remover todos os dados de demonstração?")) return;
+    removerDemo(); toast("Dados de demonstração removidos."); telaEstatisticas();
+  });
+}
+
+/* ==========================================================
+   DADOS DE DEMONSTRAÇÃO (para a apresentação do TCC)
+   ========================================================== */
+const sortear = (lista) => lista[Math.floor(Math.random() * lista.length)];
+const diasAtras = (d) => isoDe(Date.now() - d * 86400000);
+function gerarCPF() {
+  const n = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10));
+  for (const len of [9, 10]) {
+    let soma = 0;
+    for (let i = 0; i < len; i++) soma += n[i] * (len + 1 - i);
+    const r = (soma * 10) % 11;
+    n.push(r === 10 ? 0 : r);
+  }
+  return mascaraCPF(n.join(""));
+}
+
+function gerarDemo() {
+  const nomes = ["Thor", "Mel", "Luna", "Bob", "Nina", "Fred", "Amora", "Simba", "Bidu", "Mia", "Toby", "Belinha",
+    "Zeca", "Lola", "Max", "Pandora", "Chico", "Frida", "Biscoito", "Jade", "Theo", "Kiara", "Café", "Tobias"];
+  const tutores = ["Ana Souza", "Bruno Lima", "Carla Mendes", "Diego Rocha", "Eduarda Alves", "Felipe Costa",
+    "Gabriela Nunes", "Henrique Dias", "Isabela Ramos", "Lucas Martins", "Larissa Melo", "Marcos Teixeira"];
+  const cidades = ["Florianópolis / SC", "Florianópolis / SC", "São José / SC", "Palhoça / SC", "Joinville / SC", "Blumenau / SC"];
+  const especies = ["Cão", "Cão", "Cão", "Cão", "Cão", "Gato", "Gato", "Gato", "Gato", "Coelho", "Ave"];
+  const pessoas = tutores.map((nome) => ({ nome, cpf: gerarCPF(), cidade: sortear(cidades),
+    telefone: `(48) 9${String(Math.floor(Math.random() * 1e4)).padStart(4, "0")}-${String(Math.floor(Math.random() * 1e4)).padStart(4, "0")}` }));
+
+  const novos = nomes.map((nome) => {
+    const t = sortear(pessoas);
+    const especie = sortear(especies);
+    const emissao = diasAtras(Math.floor(Math.random() * 175));
+    const vacinas = [{ nome: "Raiva", data: emissao, proxima: isoDe(new Date(emissao + "T00:00:00").getTime() + 365 * 86400000) }];
+    if (Math.random() < 0.35) vacinas.push({ nome: especie === "Gato" ? "V4 felina" : "V10", data: diasAtras(400), proxima: diasAtras(Math.floor(Math.random() * 40) + 5) });
+    return { id: novoId(), demo: true, dono: null, rg: gerarNumeroRG(), emissao, emitidoPor: "Demonstração",
+      cpf: t.cpf, tutor: t.nome, telefoneTutor: t.telefone, cidadeTutor: t.cidade, foto: null, nome, especie,
+      raca: "SRD", sexo: sortear(["Macho", "Fêmea"]), nascimento: diasAtras(400 + Math.floor(Math.random() * 3000)),
+      pelagem: sortear(["Caramelo", "Preto", "Branco", "Tigrado", "Malhado"]), porte: sortear(["Pequeno", "Médio", "Grande"]),
+      peso: "", microchip: "", castrado: Math.random() < 0.65, endereco: "", observacoes: "", vacinas };
+  });
+  novos.slice(0, 2).forEach((a, i) => (a.desaparecido = { data: diasAtras(3 + i * 4), local: sortear(["Praça XV", "Beira-Mar", "Centro"]), obs: "", marcadoPor: "Demonstração" }));
+  animais.push(...novos);
+
+  const tiposPeso = ["Consulta", "Consulta", "Consulta", "Exame", "Exame", "Cirurgia"];
+  for (let i = 0; i < 20; i++) {
+    const a = sortear(novos);
+    const tipo = sortear(tiposPeso);
+    let d = new Date(Date.now() + (Math.floor(Math.random() * 100) - 60) * 86400000);
+    if (d.getDay() === 0) d = new Date(d.getTime() + 86400000);
+    consultas.push({ id: novoId(), demo: true, dono: null, animalId: a.id, tipo, subtipo: sortear(TIPOS_ATENDIMENTO[tipo]),
+      data: isoDe(d), hora: sortear(HORARIOS), criado: hojeISO() });
+  }
+
+  const tiposDen = ["Abandono", "Abandono", "Abandono", "Agressão física", "Agressão física", "Falta de comida ou água",
+    "Falta de comida ou água", "Acorrentado ou preso em local pequeno", "Animal ferido ou doente sem cuidado", "Exposição ao sol ou chuva"];
+  for (let i = 0; i < 14; i++) {
+    const data = diasAtras(Math.floor(Math.random() * 90));
+    const status = sortear(STATUS_DENUNCIA);
+    const seq = ler("rga_seq_denuncia", 0) + 1;
+    gravar("rga_seq_denuncia", seq);
+    denuncias.push({ id: novoId(), demo: true, protocolo: `DEN-${data.slice(0, 4)}-${String(seq).padStart(5, "0")}`,
+      tipo: sortear(tiposDen), especie: sortear(["Cão", "Cão", "Gato"]), data, cidade: sortear(cidades),
+      local: sortear(["Terreno baldio", "Rua principal", "Quintal de residência", "Próximo à praça"]),
+      descricao: "Denúncia de demonstração criada para a apresentação do projeto.", foto: null, anonima: Math.random() < 0.6,
+      denunciante: { nome: sortear(tutores), telefone: "(48) 90000-0000", email: "" },
+      criada: data, status, historico: [{ status: STATUS_DENUNCIA[0], data }, ...(status !== STATUS_DENUNCIA[0] ? [{ status, data: hojeISO() }] : [])] });
+  }
+  for (let i = 0; i < 5; i++) reencontros.push({ id: novoId(), demo: true, animalId: null, data: diasAtras(Math.floor(Math.random() * 120)), desde: "" });
+
+  gravar("rga_animais", animais);
+  gravar("rga_consultas", consultas);
+  gravar("rga_denuncias", denuncias);
+  gravar("rga_reencontros", reencontros);
+}
+
+function removerDemo() {
+  const ids = new Set(animais.filter((a) => a.demo).map((a) => a.id));
+  animais = animais.filter((a) => !a.demo);
+  consultas = consultas.filter((c) => !c.demo && !ids.has(c.animalId));
+  denuncias = denuncias.filter((d) => !d.demo);
+  reencontros = reencontros.filter((r) => !r.demo);
+  gravar("rga_animais", animais);
+  gravar("rga_consultas", consultas);
+  gravar("rga_denuncias", denuncias);
+  gravar("rga_reencontros", reencontros);
+}
+
+/* ==========================================================
    ÁREA DO ADMINISTRADOR
    ========================================================== */
 const tutoresComConta = () => usuarios.filter((u) => !u.admin);
@@ -1300,6 +1695,7 @@ function telaPainel() {
     { n: deHoje.length, t: "Consultas hoje", cor: "dourado", rota: "agenda" },
     { n: interesses.length + duvidasEnviadas.length, t: "Solicitações", cor: "verde", rota: "solicitacoes" },
     { n: animais.filter((a) => a.desaparecido).length, t: "Desaparecidos", cor: "rosa", rota: "desaparecidos" },
+    { n: denuncias.filter((d) => d.status === STATUS_DENUNCIA[0]).length, t: "Denúncias novas", cor: "dourado", rota: "denuncias" },
   ];
   conteudo.innerHTML = `
     ${cabecalho("Painel do administrador", `Olá, ${escapar(usuario.nome)}`,

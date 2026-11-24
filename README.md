@@ -27,6 +27,24 @@ ative o **GitHub Pages** no repositório TCC-SC: **Settings → Pages → Deploy
 branch com o código e a pasta **/ (root)**. No plano gratuito, o repositório precisa ser público.
 Se publicar o site em outro endereço, troque `URL_PUBLICA` em `js/dados.js`.
 
+## Denúncia de maus-tratos e estatísticas
+
+- **Denunciar maus-tratos** (tutor): botão para ligar **190** em flagrante, canais oficiais (Disque
+  Denúncia 181, Delegacia de Proteção Animal da Polícia Civil de SC, IBAMA Linha Verde 0800 061 8080)
+  e a lei (Lei 9.605/1998, art. 32, e Lei 14.064/2020). O formulário registra a denúncia com número de
+  **protocolo**, foto opcional e opção **anônima** (nome e telefone não são guardados).
+  É um protótipo: a denúncia **não é enviada às autoridades**, e a tela avisa isso.
+- **Denúncias** (administrador): lista com filtro por situação (Recebida, Em análise, Encaminhada às
+  autoridades, Concluída), troca de situação com histórico.
+- **Estatísticas** (todos): números gerais sem dados pessoais, com % de castrados e de vacinação em
+  dia, RGAs por mês, por espécie e por cidade, atendimentos por tipo e denúncias por tipo e situação.
+- **Dados de demonstração** (administrador, na tela Estatísticas): cria 24 RGAs, consultas e denúncias
+  fictícias para os gráficos ficarem cheios na apresentação, e remove tudo com um clique, sem mexer
+  nos dados reais.
+
+Os canais de denúncia ficam em `CANAIS_DENUNCIA`, no arquivo `js/dados.js`. Confira se os números
+continuam valendo na sua cidade antes da apresentação.
+
 ## Dois tipos de conta
 
 | Conta | Quem é | O que faz |

@@ -566,6 +566,85 @@ main {
 .publica-nota { text-align: center; font-size: 12px; }
 
 /* ==========================================================
+   DENÚNCIA DE MAUS-TRATOS
+   ========================================================== */
+.alerta-190 {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+  background: var(--rosa-forte); color: #fff; border-radius: var(--raio); padding: 16px 18px;
+}
+.alerta-190 .svg-ico { width: 30px; height: 30px; }
+.alerta-190 strong { display: block; font-size: 17px; }
+.alerta-190 span { font-size: 14px; }
+.alerta-190:hover { background: var(--rosa-escuro); }
+.canais { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.canal { border: 1px solid var(--borda); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+.canal p { font-size: 13px; color: var(--texto-suave); }
+.canal-numero { display: inline-flex; align-items: center; gap: 6px; font-size: 20px; font-weight: 700; color: var(--rosa-escuro); }
+.canal-numero .svg-ico { width: 18px; height: 18px; }
+span.canal-numero { font-size: 15px; color: var(--texto); }
+.lei { margin-top: 14px; font-size: 13px; color: var(--texto-suave); border-left: 3px solid var(--dourado); padding-left: 10px; }
+.foto-denuncia { align-items: flex-start; margin-top: 12px; cursor: pointer; }
+.foto-denuncia .btn .svg-ico { width: 16px; height: 16px; }
+#form-denuncia .aceite { margin-top: 12px; }
+.protocolo { font-family: "Courier New", monospace; font-size: 26px; font-weight: 700; color: var(--rosa-escuro);
+  background: var(--rosa-claro); padding: 8px 16px; border-radius: 12px; margin: 6px 0; }
+.ticket > .svg-ico { width: 40px; height: 40px; color: var(--rosa-escuro); }
+
+.denuncia-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.denuncia-topo > div { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.denuncia-topo strong { font-family: "Courier New", monospace; }
+.denuncia-topo select { font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--borda); border-radius: 10px; background: #fff; }
+.denuncia-corpo { display: grid; grid-template-columns: auto 1fr; gap: 16px; }
+.denuncia-corpo:not(:has(.denuncia-foto)) { grid-template-columns: 1fr; }
+.denuncia-corpo p { margin-bottom: 12px; font-size: 14px; }
+.denuncia-corpo .doc-dados { margin-bottom: 10px; }
+.denuncia-foto { width: 140px !important; height: 140px !important; border-radius: 12px !important; }
+
+/* ==========================================================
+   ESTATÍSTICAS
+   ========================================================== */
+.painel-demo { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; border-style: dashed; }
+.painel-demo > div:first-child { flex: 1; min-width: 220px; }
+.painel-demo .acoes { margin: 0; }
+
+/* barras horizontais */
+.gb { display: flex; flex-direction: column; gap: 10px; }
+.gb-linha { display: grid; grid-template-columns: minmax(90px, 38%) 1fr auto; align-items: center; gap: 10px; }
+.gb-rotulo { font-size: 13px; color: var(--texto); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gb-trilho { height: 14px; background: var(--fundo); border-radius: 4px; overflow: hidden; }
+.gb-barra { display: block; height: 100%; background: var(--verde-agua-escuro); border-radius: 0 4px 4px 0; }
+.gb-linha:hover .gb-barra { background: #0f5f56; }
+.gb-valor { font-size: 13px; font-weight: 600; min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+.gb-valor small { font-weight: 400; color: var(--texto-suave); }
+
+/* colunas por mês */
+.gc { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; height: 190px; align-items: end; }
+.gc-coluna { display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; }
+.gc-valor { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.gc-trilho { flex: 1; width: 100%; max-width: 44px; display: flex; align-items: flex-end;
+  border-bottom: 1px solid var(--borda); }
+.gc-barra { display: block; width: 100%; background: var(--verde-agua-escuro); border-radius: 4px 4px 0 0; }
+.gc-coluna:hover .gc-barra { background: #0f5f56; }
+.gc-rotulo { font-size: 12px; color: var(--texto-suave); text-transform: capitalize; }
+
+/* medidor de porcentagem */
+.medidor { margin-bottom: 18px; }
+.medidor-topo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.medidor-topo strong { font-size: 24px; color: var(--verde-agua-escuro); font-variant-numeric: tabular-nums; }
+.medidor-trilho { height: 12px; background: var(--fundo); border-radius: 999px; overflow: hidden; border: 1px solid var(--borda); }
+.medidor-trilho span { display: block; height: 100%; background: var(--verde-agua-escuro); border-radius: 999px; }
+.medidor small { color: var(--texto-suave); font-size: 12px; }
+
+@media (max-width: 520px) {
+  .denuncia-corpo { grid-template-columns: 1fr; }
+  .denuncia-foto { width: 100% !important; }
+  .gb-linha { grid-template-columns: 1fr auto; }
+  .gb-rotulo { grid-column: 1 / -1; white-space: normal; }
+  .gb-trilho { grid-column: 1; }
+  .gc { height: 160px; gap: 6px; }
+}
+
+/* ==========================================================
    ASSISTENTE "POSSO AJUDAR?"
    ========================================================== */
 .ajuda-flutuante {
@@ -665,3 +744,9 @@ dialog::backdrop { background: rgba(45, 42, 50, .45); }
 
 /* Campos de data da vacina não podem passar da largura da tela */
 .linha-vacina input { min-width: 0; }
+
+/* Estatísticas: 6 números em 3 colunas (2 no celular) */
+.numeros-3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 760px) { .numeros-3 { grid-template-columns: 1fr 1fr; } }
+#form-denuncia { margin-top: 14px; }
+#form-denuncia .grade + .campo { margin-top: 12px; }

@@ -37,6 +37,10 @@ const ICONES = {
   qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h3v-3"/>',
   usuario: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   vacina: '<path d="m18 2 4 4M17 7l3-3M19 9 8.7 19.3a2.4 2.4 0 0 1-3.4 0l-.6-.6a2.4 2.4 0 0 1 0-3.4L15 5M9 11l4 4M5 19l-3 3M14 4l6 6"/>',
+  megafone: '<path d="m3 11 15-6v14L3 13Z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+  grafico: '<path d="M3 3v18h18"/><path d="M7 15v2M11 11v6M15 7v10M19 13v4"/>',
+  telefone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>',
+  link: '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
   escudo: '<path d="M12 3 4 6v6c0 4.5 3.4 8.2 8 9 4.6-.8 8-4.5 8-9V6Z"/><path d="m9 12 2 2 4-4"/>',
 };
 const icone = (nome) => `<svg class="svg-ico" viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
@@ -49,6 +53,8 @@ const MENU_ADMIN = [
   { rota: "tutores",      titulo: "Tutores",       icone: "pessoas" },
   { rota: "agenda",       titulo: "Agenda",        icone: "consulta" },
   { rota: "desaparecidos", titulo: "Desaparecidos", icone: "alerta" },
+  { rota: "denuncias",    titulo: "Denúncias",     icone: "megafone" },
+  { rota: "estatisticas", titulo: "Estatísticas",  icone: "grafico" },
   { rota: "solicitacoes", titulo: "Solicitações",  icone: "caixa" },
 ];
 
@@ -60,6 +66,8 @@ const ATALHOS = [
   { rota: "cuidados",  titulo: "Cuidados",            descricao: "Dicas para o dia a dia",        icone: "cuidados", cor: "verde" },
   { rota: "adocao",    titulo: "Adoção",              descricao: "Encontre um novo amigo",        icone: "adocao",   cor: "rosa" },
   { rota: "desaparecidos", titulo: "Desaparecidos",   descricao: "Animais perdidos",              icone: "alerta",   cor: "dourado" },
+  { rota: "denunciar",  titulo: "Denunciar maus-tratos", descricao: "Canais oficiais e denúncia",  icone: "megafone", cor: "rosa" },
+  { rota: "estatisticas", titulo: "Estatísticas",     descricao: "Números gerais do RGA",         icone: "grafico",  cor: "verde" },
 ];
 
 /* Tipos de atendimento (mapa: Exame / Consulta / Cirurgia) */
@@ -99,6 +107,9 @@ const DUVIDAS = [
   { p: "O RGA substitui o SinPatinhas?",
     r: "Não. O RGA é um protótipo de TCC. O cadastro oficial e gratuito de cães e gatos do governo federal é o SinPatinhas, feito em sinpatinhas.mma.gov.br com a conta gov.br.",
     chaves: ["sinpatinhas", "oficial", "governo", "gov.br", "substitui"] },
+  { p: "Como denuncio maus-tratos?",
+    r: "Se estiver acontecendo agora, ligue 190 (Polícia Militar). Para denunciar depois, use o Disque Denúncia 181 (anônimo) ou a Delegacia de Proteção Animal. No menu “Denunciar maus-tratos” você encontra esses canais e pode registrar a denúncia no RGA.",
+    chaves: ["denúncia", "denuncia", "denunciar", "maus-tratos", "maus tratos", "maltrato", "agressão", "abandono"] },
   { p: "Onde meus dados ficam salvos?",
     r: "Neste protótipo, tudo fica salvo apenas neste aparelho/navegador. Se limpar os dados do navegador, as informações são apagadas.",
     chaves: ["dados", "salvo", "salvos", "privacidade", "apagar"] },
@@ -173,3 +184,21 @@ o telefone e a cidade. O CPF nunca é mostrado por inteiro.</p>
 <p>Você pode ver e corrigir seus dados em “Meus dados” e excluir sua conta a qualquer momento.</p>
 <h3 class="subtitulo">Onde os dados ficam</h3>
 <p>Neste protótipo, apenas neste aparelho/navegador.</p>`;
+
+/* ==========================================================
+   DENÚNCIA DE MAUS-TRATOS
+   Canais oficiais: confira se continuam valendo na sua cidade antes da apresentação.
+   ========================================================== */
+const CANAIS_DENUNCIA = [
+  { titulo: "Polícia Militar", numero: "190", tel: "190", destaque: true,
+    texto: "Se os maus-tratos estão acontecendo agora (flagrante). Não confronte o agressor." },
+  { titulo: "Disque Denúncia", numero: "181", tel: "181",
+    texto: "Denúncia anônima por telefone, disponível em vários estados." },
+  { titulo: "Delegacia de Proteção Animal (DPA)", numero: "Polícia Civil de SC",
+    texto: "Santa Catarina tem DPAs em Florianópolis, Joinville e Blumenau. Nas outras cidades, procure qualquer delegacia." },
+  { titulo: "IBAMA — Linha Verde", numero: "0800 061 8080", tel: "08000618080",
+    texto: "Para maus-tratos ou tráfico de animais silvestres." },
+];
+const TIPOS_DENUNCIA = ["Abandono", "Agressão física", "Falta de comida ou água", "Acorrentado ou preso em local pequeno",
+  "Animal ferido ou doente sem cuidado", "Envenenamento", "Exposição ao sol ou chuva", "Outro"];
+const STATUS_DENUNCIA = ["Recebida", "Em análise", "Encaminhada às autoridades", "Concluída"];
