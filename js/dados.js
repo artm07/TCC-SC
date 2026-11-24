@@ -108,7 +108,7 @@ const DUVIDAS = [
     r: "Não. O RGA é um protótipo de TCC. O cadastro oficial e gratuito de cães e gatos do governo federal é o SinPatinhas, feito em sinpatinhas.mma.gov.br com a conta gov.br.",
     chaves: ["sinpatinhas", "oficial", "governo", "gov.br", "substitui"] },
   { p: "Como denuncio maus-tratos?",
-    r: "Se estiver acontecendo agora, ligue 190 (Polícia Militar). Para denunciar depois, use o Disque Denúncia 181 (anônimo) ou a Delegacia de Proteção Animal. No menu “Denunciar maus-tratos” você encontra esses canais e pode registrar a denúncia no RGA.",
+    r: "Se estiver acontecendo agora, ligue 190 (Polícia Militar). Para denunciar depois, ligue 153 (Guarda Civil Municipal de São Bernardo), use o Disque Denúncia 181 (anônimo) ou a DEPA, a delegacia on-line de proteção animal de SP. No menu “Denunciar maus-tratos” você encontra esses canais e pode registrar a denúncia no RGA.",
     chaves: ["denúncia", "denuncia", "denunciar", "maus-tratos", "maus tratos", "maltrato", "agressão", "abandono"] },
   { p: "Onde meus dados ficam salvos?",
     r: "Neste protótipo, tudo fica salvo apenas neste aparelho/navegador. Se limpar os dados do navegador, as informações são apagadas.",
@@ -187,18 +187,21 @@ o telefone e a cidade. O CPF nunca é mostrado por inteiro.</p>
 
 /* ==========================================================
    DENÚNCIA DE MAUS-TRATOS
-   Canais oficiais: confira se continuam valendo na sua cidade antes da apresentação.
+   Canais oficiais para São Bernardo do Campo / SP: confira se continuam valendo antes da apresentação.
    ========================================================== */
 const CANAIS_DENUNCIA = [
   { titulo: "Polícia Militar", numero: "190", tel: "190", destaque: true,
     texto: "Se os maus-tratos estão acontecendo agora (flagrante). Não confronte o agressor." },
-  { titulo: "Disque Denúncia", numero: "181", tel: "181",
-    texto: "Denúncia anônima por telefone, disponível em vários estados." },
-  { titulo: "Delegacia de Proteção Animal (DPA)", numero: "Polícia Civil de SC",
-    texto: "Santa Catarina tem DPAs em Florianópolis, Joinville e Blumenau. Nas outras cidades, procure qualquer delegacia." },
+  { titulo: "Guarda Civil Municipal de São Bernardo do Campo", numero: "153", tel: "153",
+    texto: "Maus-tratos, abandono ou animal em condições inadequadas. Funciona 24 horas e preserva a identidade de quem denuncia." },
+  { titulo: "DEPA — Delegacia Eletrônica de Proteção Animal", numero: "Polícia Civil de SP (pela internet)",
+    link: "https://www.ssp.sp.gov.br/depa",
+    texto: "Registro on-line de maus-tratos no estado de São Paulo, com envio de fotos e vídeos e número de protocolo." },
+  { titulo: "Disque Denúncia (SSP-SP)", numero: "181", tel: "181",
+    texto: "Denúncia anônima por telefone, da Secretaria da Segurança Pública de São Paulo." },
   { titulo: "IBAMA — Linha Verde", numero: "0800 061 8080", tel: "08000618080",
     texto: "Para maus-tratos ou tráfico de animais silvestres." },
-];
+]
 const TIPOS_DENUNCIA = ["Abandono", "Agressão física", "Falta de comida ou água", "Acorrentado ou preso em local pequeno",
   "Animal ferido ou doente sem cuidado", "Envenenamento", "Exposição ao sol ou chuva", "Outro"];
 const STATUS_DENUNCIA = ["Recebida", "Em análise", "Encaminhada às autoridades", "Concluída"];

@@ -502,7 +502,7 @@ function telaFormRga(editId) {
         <div id="tutor-novo" class="grade" hidden>
           <label class="campo"><span>Nome do tutor *</span><input name="tutor" maxlength="60"></label>
           <label class="campo"><span>Telefone *</span><input name="telefone" inputmode="tel" placeholder="(00) 00000-0000" maxlength="15"></label>
-          <label class="campo"><span>Cidade / UF</span><input name="cidade" maxlength="40" placeholder="Florianópolis / SC"></label>
+          <label class="campo"><span>Cidade / UF</span><input name="cidade" maxlength="40" placeholder="São Bernardo do Campo / SP"></label>
         </div>
       </section>
 
@@ -1339,6 +1339,7 @@ function telaDenunciar() {
           ${c.tel ? `<a class="canal-numero" href="tel:${c.tel}">${icone("telefone")}${c.numero}</a>`
             : `<span class="canal-numero">${c.numero}</span>`}
           <p>${c.texto}</p>
+          ${c.link ? `<a class="link link-canal" href="${c.link}" target="_blank" rel="noopener">${icone("link")}Abrir o site</a>` : ""}
         </div>`).join("")}</div>
       <p class="lei">Lei de Crimes Ambientais (Lei 9.605/1998), art. 32. Para cães e gatos, a pena é de
         <strong>2 a 5 anos de reclusão</strong>, multa e proibição da guarda (Lei 14.064/2020 — Lei Sansão).</p>
@@ -1415,7 +1416,7 @@ function telaDenunciar() {
         <div class="protocolo">${d.protocolo}</div>
         <p>Guarde este número para acompanhar a denúncia em “Minhas denúncias”.</p>
         <small class="texto-suave">Lembre-se: o RGA é um protótipo. Para a denúncia chegar às autoridades,
-          use também o 181, a Delegacia de Proteção Animal ou, em flagrante, o 190.</small>
+          use também o 153 (GCM), o 181, a DEPA ou, em flagrante, o 190.</small>
         <button class="btn btn-rosa btn-bloco" onclick="document.getElementById('modal').close()">Ok</button>
       </div>`);
   });
@@ -1616,10 +1617,11 @@ function gerarDemo() {
     "Zeca", "Lola", "Max", "Pandora", "Chico", "Frida", "Biscoito", "Jade", "Theo", "Kiara", "Café", "Tobias"];
   const tutores = ["Ana Souza", "Bruno Lima", "Carla Mendes", "Diego Rocha", "Eduarda Alves", "Felipe Costa",
     "Gabriela Nunes", "Henrique Dias", "Isabela Ramos", "Lucas Martins", "Larissa Melo", "Marcos Teixeira"];
-  const cidades = ["Florianópolis / SC", "Florianópolis / SC", "São José / SC", "Palhoça / SC", "Joinville / SC", "Blumenau / SC"];
+  const cidades = ["São Bernardo do Campo / SP", "São Bernardo do Campo / SP", "São Bernardo do Campo / SP",
+    "Santo André / SP", "São Caetano do Sul / SP", "Diadema / SP", "São Paulo / SP"];
   const especies = ["Cão", "Cão", "Cão", "Cão", "Cão", "Gato", "Gato", "Gato", "Gato", "Coelho", "Ave"];
   const pessoas = tutores.map((nome) => ({ nome, cpf: gerarCPF(), cidade: sortear(cidades),
-    telefone: `(48) 9${String(Math.floor(Math.random() * 1e4)).padStart(4, "0")}-${String(Math.floor(Math.random() * 1e4)).padStart(4, "0")}` }));
+    telefone: `(11) 9${String(Math.floor(Math.random() * 1e4)).padStart(4, "0")}-${String(Math.floor(Math.random() * 1e4)).padStart(4, "0")}` }));
 
   const novos = nomes.map((nome) => {
     const t = sortear(pessoas);
@@ -1657,7 +1659,7 @@ function gerarDemo() {
       tipo: sortear(tiposDen), especie: sortear(["Cão", "Cão", "Gato"]), data, cidade: sortear(cidades),
       local: sortear(["Terreno baldio", "Rua principal", "Quintal de residência", "Próximo à praça"]),
       descricao: "Denúncia de demonstração criada para a apresentação do projeto.", foto: null, anonima: Math.random() < 0.6,
-      denunciante: { nome: sortear(tutores), telefone: "(48) 90000-0000", email: "" },
+      denunciante: { nome: sortear(tutores), telefone: "(11) 90000-0000", email: "" },
       criada: data, status, historico: [{ status: STATUS_DENUNCIA[0], data }, ...(status !== STATUS_DENUNCIA[0] ? [{ status, data: hojeISO() }] : [])] });
   }
   for (let i = 0; i < 5; i++) reencontros.push({ id: novoId(), demo: true, animalId: null, data: diasAtras(Math.floor(Math.random() * 120)), desde: "" });

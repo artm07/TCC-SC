@@ -750,3 +750,5 @@ dialog::backdrop { background: rgba(45, 42, 50, .45); }
 @media (max-width: 760px) { .numeros-3 { grid-template-columns: 1fr 1fr; } }
 #form-denuncia { margin-top: 14px; }
 #form-denuncia .grade + .campo { margin-top: 12px; }
+.link-canal { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; }
+.link-canal .svg-ico { width: 16px; height: 16px; }

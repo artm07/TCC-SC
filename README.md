@@ -29,8 +29,9 @@ Se publicar o site em outro endereço, troque `URL_PUBLICA` em `js/dados.js`.
 
 ## Denúncia de maus-tratos e estatísticas
 
-- **Denunciar maus-tratos** (tutor): botão para ligar **190** em flagrante, canais oficiais (Disque
-  Denúncia 181, Delegacia de Proteção Animal da Polícia Civil de SC, IBAMA Linha Verde 0800 061 8080)
+- **Denunciar maus-tratos** (tutor): botão para ligar **190** em flagrante, canais oficiais de
+  São Bernardo do Campo / SP (Guarda Civil Municipal **153**, **DEPA** — Delegacia Eletrônica de Proteção
+  Animal da Polícia Civil de SP, Disque Denúncia **181** da SSP-SP e IBAMA Linha Verde 0800 061 8080)
   e a lei (Lei 9.605/1998, art. 32, e Lei 14.064/2020). O formulário registra a denúncia com número de
   **protocolo**, foto opcional e opção **anônima** (nome e telefone não são guardados).
   É um protótipo: a denúncia **não é enviada às autoridades**, e a tela avisa isso.
